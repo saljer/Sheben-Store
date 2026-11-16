@@ -1,0 +1,685 @@
+{
+ "interval_min": 3,
+ "items": [
+  {
+   "q": "路易威登",
+   "max": null,
+   "depth": 3,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "瑞克欧文斯",
+   "max": null,
+   "depth": 2,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "金鹅 高帮",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "carol christian",
+   "max": null,
+   "depth": 2,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "boris bidjan",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "louis vuitton",
+   "max": null,
+   "depth": 3,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "瑞克欧文斯 ramones",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "瑞克欧文斯 geobasket",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "prada",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "巴黎世家 track",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "普拉达",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "金鹅",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "巴黎世家",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "普拉达 尼龙 双肩",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "盟可睐",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "普拉达 尼龙 邮差",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "石头岛 衬衫",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "石头岛 卫衣 连帽",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "卡罗尔克里斯蒂安",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "石头岛",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "路易威登 neverfull",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "普拉达 老款",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "金鹅 麂皮",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "balenciaga",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "石头岛 卫衣",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "diesel",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "迪赛",
+   "picked": true,
+   "why": "EN: за проход в ленту 14.6, новых 22.8 — у «迪赛» 0.2 и 3.9"
+  },
+  {
+   "q": "vivienne westwood",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "西太后",
+   "picked": true,
+   "why": "EN: за проход в ленту 27.7, новых 15.0 — у «西太后» 0.0 и 5.8"
+  },
+  {
+   "q": "off-white",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "enfants riches",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "川久保玲",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "comme des garcons",
+   "picked": true,
+   "why": "中: за проход в ленту 0.0, новых 6.3 — у «comme des garcons» 0.0 и 4.8"
+  },
+  {
+   "q": "undercover",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "高桥盾",
+   "picked": true,
+   "why": "EN: за проход в ленту 27.5, новых 10.2 — у «高桥盾» 0.9 и 4.2"
+  },
+  {
+   "q": "number nine",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "宫下贵裕",
+   "picked": true,
+   "why": "EN: за проход в ленту 29.3, новых 6.1 — у «宫下贵裕» 15.6 и 4.5"
+  },
+  {
+   "q": "hysteric glamour",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "dolce&gabbana",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "杜嘉班纳",
+   "picked": true,
+   "why": "EN: за проход в ленту 6.7, новых 10.4 — у «杜嘉班纳» 0.0 и 8.2"
+  },
+  {
+   "q": "mastermind japan",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "girbaud",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "givenchy",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "纪梵希",
+   "picked": true,
+   "why": "EN: за проход в ленту 0.2, новых 7.2 — у «纪梵希» 0.0 и 6.5"
+  },
+  {
+   "q": "yohji",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "山本耀司",
+   "picked": true,
+   "why": "EN: за проход в ленту 0.3, новых 6.0 — у «山本耀司» 0.0 и 5.0"
+  },
+  {
+   "q": "古驰",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "gucci",
+   "picked": true,
+   "why": "中: за проход в ленту 17.6, новых 4.1 — у «gucci» 4.5 и 6.2",
+   "src": "каналы",
+   "hot_day": "2026-11-15"
+  },
+  {
+   "q": "burberry ekd 羽绒服",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "巴宝莉 羽绒服 战马",
+   "picked": true,
+   "why": "中: за проход в ленту 7.0, новых 2.6 — у «巴宝莉 羽绒服 战马» 0.0 и 2.5"
+  },
+  {
+   "q": "celine",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "思琳",
+   "picked": true,
+   "why": "EN: за проход в ленту 38.6, новых 12.0 — у «思琳» 0.1 и 7.0",
+   "src": "каналы",
+   "hot_day": "2026-11-11"
+  },
+  {
+   "q": "巴宝莉 战马 羽绒",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "巴宝莉",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "burberry",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10"
+  },
+  {
+   "q": "valentino",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "alt": "华伦天奴",
+   "picked": true,
+   "why": "EN: за проход в ленту 24.2, новых 11.5 — у «华伦天奴» 0.2 и 6.0"
+  },
+  {
+   "q": "maison margiela 德训鞋 亮片 黑色",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "src": "избранное",
+   "fav": [
+    "626629824395"
+   ],
+   "day": "2026-11-03"
+  },
+  {
+   "q": "瑞克欧文斯 骨折靴 黑色 皮革",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "src": "избранное",
+   "fav": [
+    "1088903986977"
+   ],
+   "day": "2026-11-03"
+  },
+  {
+   "q": "普拉达 双面穿 夹克 雾霾蓝",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "src": "избранное",
+   "fav": [
+    "1087296474740"
+   ],
+   "day": "2026-11-03"
+  },
+  {
+   "q": "CP Company 护目镜 连帽 夹克 棕色",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "src": "избранное",
+   "fav": [
+    "1081803684463"
+   ],
+   "day": "2026-11-03"
+  },
+  {
+   "q": "瑞克欧文斯 联名克罗心 高帮鞋 黑色",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "src": "избранное",
+   "fav": [
+    "881184030406"
+   ],
+   "day": "2026-11-03"
+  },
+  {
+   "q": "瑞克欧文斯 高帮皮鞋 黑白 44码",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "src": "избранное",
+   "fav": [
+    "1094919346868"
+   ],
+   "day": "2026-11-03"
+  },
+  {
+   "q": "普拉达 黑色 尼龙 邮差包",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "src": "избранное",
+   "fav": [
+    "1091420244880"
+   ],
+   "day": "2026-11-04"
+  },
+  {
+   "q": "kapital",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "visvim",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "undercover",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "number nine",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "yohji yamamoto pour homme",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "comme des garcons homme plus",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "vivienne westwood",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "diesel",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000,
+   "src": "каналы",
+   "hot_day": "2026-11-15"
+  },
+  {
+   "q": "prada",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000,
+   "src": "каналы",
+   "hot_day": "2026-11-15"
+  },
+  {
+   "q": "enfants riches",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000,
+   "src": "каналы",
+   "hot_day": "2026-11-15"
+  },
+  {
+   "q": "balenciaga",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000,
+   "src": "каналы",
+   "hot_day": "2026-11-15"
+  },
+  {
+   "q": "gucci",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000,
+   "src": "каналы",
+   "hot_day": "2026-11-15"
+  },
+  {
+   "q": "valentino",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000,
+   "src": "каналы",
+   "hot_day": "2026-11-15"
+  },
+  {
+   "q": "louis vuitton",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "burberry",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "celine",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "stone island",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "dior homme",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "golden goose",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "moncler",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "chrome hearts",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "maison margiela",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "hysteric glamour",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-10",
+   "site": "mercari",
+   "min": 4900
+  },
+  {
+   "q": "宫下贵裕 黑色 针织帽 呢帽",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-11",
+   "src": "избранное",
+   "fav": [
+    "m31281021836"
+   ],
+   "day": "2026-11-11"
+  },
+  {
+   "q": "raf simons",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-12",
+   "site": "mercari",
+   "min": 8000,
+   "src": "каналы",
+   "hot_day": "2026-11-15"
+  },
+  {
+   "q": "dolce&gabbana",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-13",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "rick owens",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-15",
+   "site": "mercari",
+   "min": 8000,
+   "src": "каналы",
+   "hot_day": "2026-11-15"
+  },
+  {
+   "q": "carol christian poell",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-15",
+   "site": "mercari",
+   "min": 8000
+  },
+  {
+   "q": "продавец 威尼斯守时的木豆",
+   "max": null,
+   "depth": 1,
+   "since": "2026-11-15",
+   "seller": "2209855471763"
+  },
+  {
+   "q": "продавец CC中古",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "seller": "2204126822518"
+  },
+  {
+   "q": "продавец 粥师傅的闲置",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "seller": "751584987"
+  },
+  {
+   "q": "продавец 芒果奢侈品",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "seller": "3561581716"
+  },
+  {
+   "q": "продавец Virtualshop",
+   "max": null,
+   "depth": 1,
+   "rare": true,
+   "since": "2026-11-10",
+   "seller": "3336286092"
+  }
+ ],
+ "order": "mercari_first"
+}

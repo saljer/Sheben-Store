@@ -1,0 +1,806 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">__META__
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sheben'Store</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* закупочный лист: липкая шапка с фильтрами, сетка карточек «фото → цена/прибыль → вещь → разбор оценки» */
+:root{--bg:#eef0ed;--card:#fbfcfa;--fg:#151816;--muted:#646b66;--line:#d9ddd8;--soft:#e4e8e3;
+ --accent:#24584a;--on-accent:#fff;--good:#237a45;--mid:#a26a07;--bad:#b23a2e;--gold:#9c7410;--new:#2d5fa6;
+ --display:"Unbounded","Arial Black",sans-serif;--body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",Consolas,monospace;
+ color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1211;--card:#171b19;--fg:#e7ebe8;--muted:#929a95;--line:#2a312d;--soft:#212724;
+ --accent:#86c4ae;--on-accent:#0d1210;--good:#6fd09a;--mid:#e3a94a;--bad:#f07a6c;--gold:#e2bd55;--new:#86aef0;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1211;--card:#171b19;--fg:#e7ebe8;--muted:#929a95;--line:#2a312d;--soft:#212724;
+ --accent:#86c4ae;--on-accent:#0d1210;--good:#6fd09a;--mid:#e3a94a;--bad:#f07a6c;--gold:#e2bd55;--new:#86aef0;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 var(--body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);
+ border-bottom:1px solid var(--line)}
+header .wrap{padding-block:14px 12px;display:grid;gap:10px;max-width:2400px;margin:0 auto}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+h1{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.01em;margin:0}
+h1 small{font-family:var(--body);font-weight:500;font-size:13px;color:var(--muted);letter-spacing:0;margin-left:6px}
+.stats{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--muted)}
+.stats b{color:var(--fg);font-family:var(--mono);font-weight:600}
+.stats .g b{color:var(--good)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar select,.bar input[type=number],.bar input[type=search]{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:8px;
+ padding:7px 10px;font:inherit;font-size:13px;min-width:0}
+.bar input[type=number]{width:84px}.bar input[type=search]{width:220px}
+.bar label{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:13px}
+.bar label.tog{border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--card);cursor:pointer;user-select:none}
+.bar label.tog:has(input:checked){background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.bar label.tog input{position:absolute;opacity:0;pointer-events:none}
+.bar :focus-visible,.btn:focus-visible,.ph:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{color:var(--muted);font-size:12px}
+.banner{display:none;padding:7px 12px;border-radius:8px;background:var(--accent);color:var(--on-accent);cursor:pointer;width:max-content;max-width:100%;font-weight:600;font-size:13px}
+/* вся ширина окна; при нехватке места страница прокручивается, а не обрезает карточки */
+html{overflow-x:clip;overflow-y:auto;overflow-anchor:none}body{min-width:340px;overflow-x:clip}   /* вбок не уезжает, вниз прокручивается */
+select{color-scheme:inherit}select option{background:var(--card);color:var(--fg)}
+.money .profit{margin-left:auto}
+main .wrap{max-width:2400px;margin:0 auto;padding-block:18px 48px}
+.more{grid-column:1/-1;text-align:center;color:var(--muted);padding:18px}
+.card{content-visibility:auto;contain-intrinsic-size:auto 640px}   /* карточки за экраном не отрисовываются */
+.grid{list-style:none;margin:0;padding:0;display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;min-width:0;position:relative}
+.card>.ph{border-radius:13px 13px 0 0;overflow:hidden}
+.card.liked{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.ph{position:relative;display:block;aspect-ratio:4/3;max-width:100%;background:var(--soft);text-decoration:none;color:var(--muted)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .mono{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:4px;text-align:center;padding:12px}
+.ph .mono b{font-family:var(--display);font-size:34px;color:var(--fg);opacity:.18;text-transform:uppercase;letter-spacing:.02em}
+.ph .mono span{font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.ph img+.mono{display:none}
+.tot{position:absolute;top:10px;left:10px;font-family:var(--display);font-weight:700;font-size:20px;line-height:1;padding:8px 10px;border-radius:10px;
+ background:var(--card);color:var(--muted);font-variant-numeric:tabular-nums;box-shadow:0 1px 3px rgb(0 0 0/.18)}
+.tot.t3{background:var(--good);color:var(--card)}.tot.t2{background:var(--mid);color:var(--card)}
+.flag{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.flag span{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgb(0 0 0/.18)}
+.flag .new{background:var(--new);color:var(--card)}.flag .drop{background:var(--good);color:var(--card)}.flag .g{background:var(--gold);color:var(--card)}
+.flag .fresh{background:var(--new);color:var(--card);opacity:.85}
+.body{padding:12px 14px 14px;display:grid;gap:10px;flex:1;align-content:start}
+.money{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 10px}.money>div{min-width:0}
+.price{font-family:var(--mono);font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.price s{font-size:13px;color:var(--muted);font-weight:500;margin-left:4px}
+.profit{text-align:right;font-variant-numeric:tabular-nums}
+.pos{color:var(--good);font-weight:600;font-size:16px;white-space:nowrap}.neg{color:var(--bad);font-weight:600;font-size:16px;white-space:nowrap}
+.sub{font-size:12px;color:var(--muted)}
+.meta{font-size:13px;font-weight:600}.meta .brand{text-transform:capitalize}.meta span{color:var(--muted);font-weight:500}
+.ttl{margin:0;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.c{font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--muted)}
+.c.r{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad);font-weight:600}
+.c.bt{border:1px dashed var(--mid);color:var(--mid);background:none}
+.c.ok{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good);font-weight:600}
+.c.jp{background:color-mix(in srgb,#e0526b 16%,transparent);color:#e0526b;font-weight:600}
+.chk{font-size:12.5px;color:var(--muted)}.chk summary{cursor:pointer;color:var(--accent);font-weight:600;list-style:none}
+.chk summary::before{content:"▸ ";}.chk[open] summary::before{content:"▾ ";}
+.chk ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px}.chk p{margin:6px 0 0}
+.bars{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.b{display:grid;gap:3px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.b i{display:block;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent) calc(var(--v)*1%),var(--soft) 0)}
+.b.na i{background:repeating-linear-gradient(90deg,var(--soft) 0 3px,transparent 3px 6px)}
+/* «Что проверить» и полоски оценки — одной строкой; раскрытая проверка уходит под полоски на всю ширину */
+.chkrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}.chkrow .chk{flex:none}
+.chkrow .chk[open]{flex-basis:100%;order:2}.chkrow .bars{flex:1 1 170px;gap:5px}.chkrow .b{font-size:9.5px;gap:2px}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:auto}
+.foot .where{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;position:relative}
+.calc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.calc div{background:var(--soft);border-radius:8px;padding:6px 8px;min-width:0}
+.calc small{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.calc b{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.calc .ok b{color:var(--good)}.calc .no b{color:var(--bad)}
+.calc.click{cursor:pointer;border-radius:10px;transition:transform .15s}.calc.click:hover{transform:translateY(-1px)}.calc.click:hover div{border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
+.cpop .cin{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cpop label{display:grid;gap:3px;font-size:11.5px;color:var(--muted)}
+.cpop input{background:var(--glass,var(--soft));border:1px solid var(--line);border-radius:8px;padding:7px 9px;color:var(--fg);font:600 14px var(--mono);min-width:0}
+.cpop .ct{width:100%;border-collapse:collapse;font-size:12.5px}.cpop .ct td{padding:4px 2px;border-bottom:1px solid var(--line)}
+.cpop .ct td:last-child{text-align:right;font-family:var(--mono);white-space:nowrap}
+.cpop .chn{margin-top:10px}.cpop .chn th{font-size:11px;font-weight:500;color:var(--muted);text-align:right;padding:2px}.cpop .chn th:first-child{text-align:left}
+.cpop .chn td:not(:first-child){text-align:right;font-family:var(--mono);white-space:nowrap}.cpop .chn .ok td:last-child{color:var(--good)}.cpop .chn .no td:last-child{color:var(--bad)}.cpop .tt td{font-weight:700;border-bottom:0;padding-top:7px}
+.cpop .tt.ok td{color:var(--good)}.cpop .tt.no td{color:var(--bad)}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--card);
+ color:var(--fg);text-decoration:none;cursor:pointer;font:inherit;font-size:12.5px;font-weight:500;white-space:nowrap}
+.btn.go{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.btn.on{background:var(--gold);color:var(--card);border-color:var(--gold)}
+.empty{padding:40px;text-align:center;color:var(--muted);grid-column:1/-1}
+.why{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px;border-radius:10px;
+ background:color-mix(in srgb,var(--bad) 10%,var(--card));border:1px solid color-mix(in srgb,var(--bad) 45%,transparent)}
+.why[hidden]{display:none}
+.why .sub{width:100%;color:var(--fg);font-weight:600}
+.why button.c{border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;font:inherit;font-size:12.5px;padding:4px 10px}
+.why button.c:hover{border-color:var(--bad);color:var(--bad)}.why button.c.cancel{background:none;color:var(--muted)}
+.outs{margin-top:32px;padding-top:20px;border-top:2px dashed var(--line);display:grid;gap:14px}
+.oh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}.oh h2{font-family:var(--display);font-size:17px;margin:0 0 4px}.oh p{margin:0;max-width:760px}
+.verdict{font-size:12.5px;padding:7px 10px;border-radius:8px;background:var(--soft)}.verdict b{margin-right:4px}
+.verdict.yes b{color:var(--good)}.verdict.maybe b{color:var(--mid)}
+details{margin-top:28px}summary{cursor:pointer;font-weight:600;font-size:15px}
+.reasons{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.rej{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.rej table{width:100%;border-collapse:collapse;font-size:13px}
+.rej td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.rej td.num{white-space:nowrap;font-family:var(--mono)}
+a{color:var(--accent)}
+@media (max-width:600px){header{position:relative}h1{font-size:19px}.bar select{flex:1 1 40%}.bar input[type=search]{flex:1 1 100%;width:auto}.stats{font-size:12px}}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .15s,box-shadow .15s}.card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgb(0 0 0/.08)}}
+.brandmark{display:flex;align-items:center;gap:10px}.logo{width:30px;height:30px;flex:none}.ap{color:var(--gold)}
+.rumkt{font-size:12.5px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--accent) 9%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 28%,transparent)}
+.rumkt b{color:var(--accent);margin-right:4px}.rumkt.off{border-color:color-mix(in srgb,#c99a2e 55%,transparent)}.rumkt .d{color:#c99a2e;margin:0}
+.aiv{font-size:12.5px;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,var(--new) 12%,var(--card));border:1px solid color-mix(in srgb,var(--new) 35%,transparent)}
+.aiv b{color:var(--new);margin-right:4px}.aiv.high{background:color-mix(in srgb,var(--bad) 12%,var(--card));border-color:color-mix(in srgb,var(--bad) 45%,transparent)}.aiv.high b{color:var(--bad)}
+.act .btn{padding:6px 9px}
+#gpop{position:fixed;z-index:30;display:flex;flex-direction:column;max-height:min(560px,calc(100vh - 24px));background:var(--card);
+ border:1px solid color-mix(in srgb,var(--new) 55%,var(--line));border-radius:14px;
+ box-shadow:0 18px 50px rgb(0 0 0/.45),0 0 30px color-mix(in srgb,var(--new) 25%,transparent)}
+#gpop .gh{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+#gpop .gh b{color:var(--new);font-family:var(--display);font-size:14px}#gpop .gh .sub{flex:1}
+#gpop .gb{padding:12px;overflow-y:auto;display:grid;gap:10px;font-size:13px;overscroll-behavior:contain}
+#gpop .gt{font-weight:700;font-size:15px}#gpop .gchips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+#gpop .c.ok{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}#gpop .c.mid{color:var(--mid)}#gpop .c.bad{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+#gpop ul{margin:4px 0;padding-left:18px;color:var(--muted)}#gpop .gv{margin:4px 0 0;font-weight:500}
+#gpop .gu{justify-self:end;max-width:85%;background:color-mix(in srgb,var(--accent) 18%,transparent);padding:7px 10px;border-radius:12px 12px 2px 12px}
+#gpop .ga{max-width:92%;background:var(--soft);padding:8px 10px;border-radius:12px 12px 12px 2px;line-height:1.45}
+#gpop .gerr{color:var(--bad)}#gpop .gq{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--line)}
+#gpop .gq input{flex:1;min-width:0;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--fg);font:inherit;font-size:13px}
+.btn.sm{padding:4px 9px;font-size:12px}
+.gload{display:flex;gap:5px;align-items:center;color:var(--muted)}.gload i{width:7px;height:7px;border-radius:50%;background:var(--new);opacity:.4}
+.gload span{margin-left:6px}
+@media (prefers-reduced-motion:no-preference){#gpop{animation:gpin .2s ease-out}@keyframes gpin{from{opacity:0;transform:translateY(6px) scale(.98)}}
+ .gload i{animation:gdot 1s infinite}.gload i:nth-child(2){animation-delay:.15s}.gload i:nth-child(3){animation-delay:.3s}
+ @keyframes gdot{50%{opacity:1;transform:translateY(-3px)}}}
+#gtoast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:20;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+ max-width:min(640px,calc(100% - 32px));padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--accent);
+ box-shadow:0 10px 40px rgb(0 0 0/.35),0 0 24px color-mix(in srgb,var(--accent) 30%,transparent);font-size:13px}
+.rng{display:flex;gap:6px;align-items:center}.btn.ghost{background:none;color:var(--muted)}.btn.ghost:hover{color:var(--fg);border-color:var(--accent)}
+/* свечения: лучшие вещи и граали подсвечены, выгода «горит» */
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+ background:linear-gradient(90deg,transparent,var(--accent),var(--gold),var(--accent),transparent);background-size:200% 100%;opacity:.7}
+.tot.t3{box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 60%,transparent),0 0 16px color-mix(in srgb,var(--good) 55%,transparent)}
+.card.hot{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.card.grail{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 22px color-mix(in srgb,var(--gold) 35%,transparent)}
+.pos{text-shadow:0 0 12px color-mix(in srgb,var(--good) 45%,transparent)}
+.bar label.tog:has(input:checked){box-shadow:0 0 12px color-mix(in srgb,var(--accent) 45%,transparent)}
+.card:hover{box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent),0 12px 34px color-mix(in srgb,var(--accent) 16%,transparent)}
+.btn.go{position:relative;overflow:hidden}
+@media (prefers-reduced-motion:no-preference){
+ header::after{animation:sweep 2.4s ease-out 1}@keyframes sweep{from{background-position:200% 0}}
+ .card.grail{animation:grailglow 2.6s ease-in-out infinite}
+ @keyframes grailglow{50%{box-shadow:0 0 0 1px var(--gold),0 0 34px color-mix(in srgb,var(--gold) 55%,transparent)}}
+ .card:hover .tot.t3{box-shadow:0 0 0 1px var(--good),0 0 26px color-mix(in srgb,var(--good) 70%,transparent);transition:box-shadow .3s}
+ .btn.go::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgb(255 255 255/.35) 50%,transparent 65%);
+  transform:translateX(-120%);transition:none}
+ .btn.go:hover::after{transform:translateX(120%);transition:transform .7s ease}
+ #next_find:not(:disabled)::after{animation:shimmer 3s ease-in-out infinite}@keyframes shimmer{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+ .grid.intro .chips .c{animation:chipin .35s ease-out both}@keyframes chipin{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+ .grid.intro .bars .b i{transform-origin:left;animation:barfill .7s cubic-bezier(.2,.7,.2,1) both}@keyframes barfill{from{transform:scaleX(0)}}
+}
+@media (prefers-reduced-motion:no-preference){
+ .grid.intro .card{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 35ms)}
+ @keyframes rise{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+ .card.leaving{animation:leave .26s ease-in forwards;pointer-events:none}
+ @keyframes leave{to{opacity:0;transform:scale(.94) translateY(6px)}}
+ .btn.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+ @keyframes pop{40%{transform:scale(1.35)}}
+ .why:not([hidden]),.chk[open] ul,.chk[open] p{animation:drop .22s ease-out}
+ @keyframes drop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+ .banner{animation:pulse 2s ease-in-out infinite}
+ @keyframes pulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 25%,transparent)}}
+ .logo circle{animation:twinkle 3.2s ease-in-out infinite}
+ @keyframes twinkle{50%{opacity:.3}}
+ .ph img{transition:transform .35s ease}.card:hover .ph img{transform:scale(1.04)}
+}
+/* ---- Liquid Glass: полупрозрачные «стеклянные» поверхности над цветным фоном.
+   Размытие фона (дорогое для отрисовки) — только у шапки и мини-окна; карточки — стекло без размытия. */
+:root{--glass:rgb(255 255 255/.55);--glass-2:rgb(255 255 255/.72);--glass-brd:rgb(255 255 255/.7);--glass-hi:rgb(255 255 255/.9);
+ --glass-sh:0 8px 30px rgb(30 50 40/.10);--blob1:#9fd6c2;--blob2:#f1d58a;--blob3:#a9c4f5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:rgb(30 36 34/.52);--glass-2:rgb(34 41 38/.7);--glass-brd:rgb(255 255 255/.10);
+ --glass-hi:rgb(255 255 255/.16);--glass-sh:0 10px 34px rgb(0 0 0/.35);--blob1:#1f5a48;--blob2:#5c4a14;--blob3:#22365e}}
+:root[data-theme="dark"]{--glass:rgb(30 36 34/.52);--glass-2:rgb(34 41 38/.7);--glass-brd:rgb(255 255 255/.10);
+ --glass-hi:rgb(255 255 255/.16);--glass-sh:0 10px 34px rgb(0 0 0/.35);--blob1:#1f5a48;--blob2:#5c4a14;--blob3:#22365e}
+body{background:radial-gradient(1100px 700px at 8% -10%,color-mix(in srgb,var(--blob1) 55%,transparent),transparent 60%),
+ radial-gradient(900px 600px at 95% 10%,color-mix(in srgb,var(--blob2) 40%,transparent),transparent 60%),
+ radial-gradient(1000px 800px at 50% 110%,color-mix(in srgb,var(--blob3) 45%,transparent),transparent 60%),var(--bg);background-attachment:fixed}
+header{background:var(--glass-2);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+ border-bottom:1px solid var(--glass-brd);box-shadow:inset 0 -1px 0 var(--glass-hi)}
+.card{background:linear-gradient(160deg,var(--glass-2),var(--glass) 55%);border:1px solid var(--glass-brd);
+ box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-sh);border-radius:20px}
+.card>.ph{border-radius:19px 19px 0 0}
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
+ background:linear-gradient(115deg,transparent 30%,rgb(255 255 255/.10) 45%,transparent 60%);background-size:250% 100%;background-position:100% 0}
+.card:hover::after{opacity:1;background-position:-50% 0;transition:background-position .9s ease,opacity .3s}
+.btn{background:var(--glass);border-color:var(--glass-brd);box-shadow:inset 0 1px 0 var(--glass-hi);border-radius:999px}
+.btn:hover{background:var(--glass-2)}
+.btn.go{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 85%,white),var(--accent));border-color:color-mix(in srgb,var(--accent) 70%,white);
+ box-shadow:inset 0 1px 0 rgb(255 255 255/.45),0 4px 14px color-mix(in srgb,var(--accent) 35%,transparent)}
+.bar select,.bar input[type=number],.bar input[type=search],.bar label.tog{background:var(--glass);border-color:var(--glass-brd);
+ box-shadow:inset 0 1px 0 var(--glass-hi);border-radius:999px}
+.bar label.tog:has(input:checked){background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 85%,white),var(--accent))}
+.c{background:var(--glass);border:1px solid var(--glass-brd)}
+.calc div,.verdict,.aiv{background:var(--glass);border:1px solid var(--glass-brd);box-shadow:inset 0 1px 0 var(--glass-hi)}
+.tot{background:var(--glass-2);-webkit-backdrop-filter:none;border:1px solid var(--glass-brd);box-shadow:inset 0 1px 0 var(--glass-hi),0 2px 8px rgb(0 0 0/.18)}
+.flag span{background:var(--glass-2);border:1px solid var(--glass-brd)}
+#gpop{background:var(--glass-2);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);
+ border-radius:22px;box-shadow:inset 0 1px 0 var(--glass-hi),0 24px 60px rgb(0 0 0/.40),0 0 30px color-mix(in srgb,var(--new) 22%,transparent)}
+#gpop .ga,#gpop .gq input{background:var(--glass)}
+#gtoast{background:var(--glass-2);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);border-radius:18px}
+.rej{background:var(--glass);border-color:var(--glass-brd)}
+.snote{color:var(--mid);font-weight:700}
+.ssrc{font-size:10px;padding:0 5px;border:1px solid var(--line,#2a3338);border-radius:8px;opacity:.85}
+.ssrc.stub{color:var(--mid);border-style:dashed}
+.btn.busy{color:var(--new);border-color:color-mix(in srgb,var(--new) 50%,transparent)}
+@media (prefers-reduced-motion:no-preference){.btn.busy{animation:busy 1.2s ease-in-out infinite}@keyframes busy{50%{opacity:.55}}}
+/* быстрые наборы, «Ещё фильтры», скидка к рынку, просмотренное, фокус с клавиатуры */
+.presets{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.pre{border:1px solid var(--glass-brd);background:var(--glass);color:var(--fg);border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;font-weight:500;
+ cursor:pointer;box-shadow:inset 0 1px 0 var(--glass-hi);transition:background .15s,color .15s}
+.pre:hover{border-color:var(--accent);color:var(--accent)}
+.pre.on{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 85%,white),var(--accent));color:var(--on-accent);border-color:transparent;font-weight:600}
+.more-f{display:none;gap:10px}header.more-open .more-f{display:grid}#more_btn b{font-family:var(--mono);color:var(--accent)}
+.dealb{position:absolute;left:10px;bottom:10px;font-weight:700;font-size:13px;padding:5px 10px;border-radius:999px;color:var(--on-accent);
+ background:linear-gradient(180deg,color-mix(in srgb,var(--good) 80%,white),var(--good));box-shadow:0 2px 10px color-mix(in srgb,var(--good) 45%,transparent)}
+.seen{position:absolute;right:10px;bottom:10px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--glass-2);color:var(--muted);border:1px solid var(--glass-brd)}
+.card.viewed .ph img{filter:saturate(.45) brightness(.8)}.card.viewed .tot{opacity:.75}
+.card.kf{outline:2px solid var(--accent);outline-offset:3px}
+.obanner{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 12px;border-radius:14px;font-size:13px;
+ background:color-mix(in srgb,var(--good) 14%,var(--glass));border:1px solid color-mix(in srgb,var(--good) 45%,transparent)}.obanner[hidden]{display:none}
+/* телефон: шапка не липнет и не занимает пол-экрана, кнопки крупнее */
+@media (max-width:600px){.presets{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -2px}.pre{flex:none}
+ .bar .gsel{flex:1 1 45%}.act .btn{padding:8px 11px;font-size:13px}.grid{gap:10px}.body{padding:10px 12px 12px}
+ .stats span:nth-child(n+3){display:none}#note{display:none}}
+.calc div{padding:4px 8px}.calc small{font-size:10px}.body{gap:8px}
+/* сворачиваемые фильтры */
+.head{align-items:center}.ftog{margin-left:auto;gap:6px}.ftog b{font-family:var(--mono);color:var(--accent)}.ftog i{font-style:normal;color:var(--muted)}
+.fpanel{display:grid;gap:10px;max-height:1600px;transition:max-height .28s ease,opacity .2s ease}   /* без overflow:hidden — иначе обрежет выпадающие списки */
+header.collapsed .fpanel{max-height:0;opacity:0;pointer-events:none;margin-top:-10px;overflow:hidden}
+@media (prefers-reduced-motion:reduce){.fpanel{transition:none}}
+/* стеклянный выпадающий список */
+.gsel{position:relative;display:inline-block}.gsel select{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.gsel-btn{font:inherit;font-size:13px;color:var(--fg);background:var(--glass);border:1px solid var(--glass-brd);border-radius:999px;
+ box-shadow:inset 0 1px 0 var(--glass-hi);padding:7px 30px 7px 14px;cursor:pointer;position:relative;white-space:nowrap;min-width:120px;text-align:left}
+.gsel-btn::after{content:"";position:absolute;right:13px;top:50%;width:6px;height:6px;border:solid var(--muted);border-width:0 1.6px 1.6px 0;
+ transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+.gsel.open .gsel-btn{border-color:var(--accent);box-shadow:inset 0 1px 0 var(--glass-hi),0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.gsel.open .gsel-btn::after{transform:translateY(-30%) rotate(-135deg)}
+.gsel-list{position:absolute;z-index:40;top:calc(100% + 6px);left:0;min-width:100%;max-height:min(340px,60vh);overflow-y:auto;padding:6px;
+ /* внутри стеклянной шапки размытие не работает — стекло «плотное»: почти непрозрачный фон с бликом */
+ background:linear-gradient(180deg,color-mix(in srgb,var(--card) 96%,white 4%),color-mix(in srgb,var(--card) 98%,transparent));
+ border:1px solid var(--glass-brd);border-radius:16px;box-shadow:inset 0 1px 0 var(--glass-hi),0 18px 44px rgb(0 0 0/.38)}
+.gsel-list div{padding:8px 12px;border-radius:10px;font-size:13px;cursor:pointer;white-space:nowrap}
+.gsel-list div:hover{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.gsel-list div.on{background:color-mix(in srgb,var(--accent) 28%,transparent);color:var(--fg);font-weight:600}
+@media (prefers-reduced-motion:no-preference){.gsel-list{animation:gsin .16s ease-out}@keyframes gsin{from{opacity:0;transform:translateY(-4px) scale(.98)}}}
+@media (max-width:600px){.gsel{flex:1 1 40%}.gsel-btn{width:100%}}
+/* плотная лента: больше фото и главные цифры на экране (цена там, цена в РФ, чистая прибыль, время с публикации);
+   остальное — по «⋯» на карточке. Переключатель «плотно / подробно» — в шапке */
+.kn,.mo{display:none}.xa{display:contents}#note[hidden]{display:none}
+.k1{display:flex;justify-content:space-between;align-items:baseline;gap:6px;min-width:0}
+.kp{font:700 15px var(--mono);white-space:nowrap}.kp small{font-size:10px;font-weight:500;color:var(--muted)}
+.kpr{font:700 14px var(--mono);white-space:nowrap;cursor:pointer;text-shadow:none}.kpr.pos{color:var(--good);font-size:14px}.kpr.neg{color:var(--bad);font-size:14px}
+.kpr.na{font-weight:500;font-size:11.5px;font-family:inherit;color:var(--muted);cursor:default}
+.k2{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;color:var(--muted);white-space:nowrap;min-width:0}.k2 span{overflow:hidden;text-overflow:ellipsis}
+.kw{font-style:normal;color:var(--bad)}.kok{font-style:normal;color:var(--good)}
+.k3{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.dense .grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,206px),1fr));gap:10px}
+body.dense .card{contain-intrinsic-size:auto 350px}
+body.dense .ph{aspect-ratio:1}
+body.dense .body{padding:8px 10px 10px;gap:6px}
+body.dense .card:not(.open) .kn{display:grid;gap:3px;min-width:0}
+body.dense .mo{display:inline-flex}
+body.dense .card:not(.open) :is(.money,.meta,.verdict,.calc,.rumkt,.aiv,.chips,.chkrow,.where,.xa){display:none}
+body.dense .card:not(.open) .ttl{-webkit-line-clamp:1;font-size:12px}
+body.dense .card:not(.open) .foot{border-top:0;padding-top:0}
+body.dense .card:not(.open) .act{gap:4px;margin-left:0;width:100%}
+body.dense .card:not(.open) .act .btn{padding:4px 9px;font-size:12px}
+body.dense .card:not(.open) .act .btn.go{flex:1;justify-content:center;text-align:center}
+@media (min-width:520px){body.dense .card.open{grid-column:span 2}}
+
+/* ===== карточка ленты, редакция 11.2026: главное крупно, второстепенное — тише, кнопки одним рядом ===== */
+body:not(.dense) .body{gap:9px;padding:12px 14px 12px}
+.meta{display:flex;align-items:baseline;gap:6px;font-size:14px;min-width:0}
+.meta .brand{font-weight:700;white-space:nowrap}.meta span:not(.brand){color:var(--muted);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.meta time{margin-left:auto;flex:none;font-size:11.5px;font-weight:500;color:var(--muted);white-space:nowrap}
+.money{align-items:flex-start}
+.price{font-size:23px;font-weight:700;letter-spacing:-.01em}
+.money .sub{font-variant-numeric:tabular-nums}
+.profit .pos,.profit .neg{display:inline-block;font:700 15.5px var(--mono);padding:3px 10px;border-radius:999px;margin-bottom:3px}
+.profit .pos{background:color-mix(in srgb,var(--good) 16%,transparent)}.profit .neg{background:color-mix(in srgb,var(--bad) 13%,transparent)}
+.profit .sub{max-width:190px;margin-left:auto;line-height:1.35}
+.ttl{-webkit-line-clamp:1;font-size:12px;opacity:.85}
+/* затраты · брать до · окупаемость — одна полоса вместо трёх плашек */
+.calc{display:flex;gap:0;border:1px solid var(--glass-brd,var(--line));border-radius:12px;background:var(--glass,var(--soft));overflow:hidden;
+ box-shadow:inset 0 1px 0 var(--glass-hi,transparent)}
+.calc div{flex:1 1 0;background:none;border:0;box-shadow:none;border-radius:0;padding:6px 10px}
+.calc div+div{border-left:1px solid var(--glass-brd,var(--line))}
+.calc small{font-size:9.5px;letter-spacing:.05em}.calc b{font-size:13.5px}
+.calc.click:hover{transform:none;border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
+.verdict{padding:6px 10px;font-size:12px;line-height:1.4}
+.chips{gap:4px}.c{font-size:11px;padding:2px 8px}
+.chips:not(.all) .cx{display:none}
+.c.cm{cursor:pointer;font:inherit;font-size:11px;color:var(--accent);border:1px solid var(--glass-brd,var(--line));background:none}
+.c.cm:hover{border-color:var(--accent)}
+.chkrow{padding-top:2px;gap:6px 12px}.chkrow .bars{flex:1 1 130px;gap:4px}.chkrow .b{font-size:9px;opacity:.85;letter-spacing:.02em}.b i{height:3px}
+.foot{flex-direction:column;align-items:stretch;gap:8px;padding-top:9px}
+.foot .where{font-size:11.5px}
+.act{width:100%;margin-left:0;gap:6px;flex-wrap:nowrap}
+.act .btn{padding:7px 11px}.act .btn.go{flex:1;justify-content:center}
+.mx{display:none;letter-spacing:.08em}
+/* подробная лента: редкие действия — в меню над кнопками */
+body:not(.dense) .mx{display:inline-flex}
+body:not(.dense) .xa{display:none}
+body:not(.dense) .card.xo{z-index:5}
+body:not(.dense) .card.xo .xa{display:flex;flex-direction:column;gap:4px;position:absolute;right:0;bottom:calc(100% + 8px);z-index:30;min-width:170px;padding:6px;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--card) 96%,white 4%),var(--card));border:1px solid var(--glass-brd,var(--line));border-radius:14px;
+ box-shadow:inset 0 1px 0 var(--glass-hi,transparent),0 16px 40px rgb(0 0 0/.35)}
+body:not(.dense) .card.xo .xa .btn{justify-content:flex-start;border-radius:10px;padding:8px 12px}
+body:not(.dense) .card.xo .mx{border-color:var(--accent);color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){body:not(.dense) .card.xo .xa{animation:gsin .16s ease-out}}
+/* плотная лента: в карточке уже есть свои цифры (.kn) — строка бренда сверху не нужна */
+body.dense .card:not(.open) .meta{display:none}
+body.dense .act{flex-wrap:wrap}
+</style></head><body>
+<header><div class="wrap">
+ <div class="head"><h1 class="brandmark"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="var(--accent)"/><path d="M21.5 10.2c-1.3-1.5-3.2-2.2-5.4-2.2-3.3 0-5.6 1.8-5.6 4.5 0 2.6 2 3.6 5.2 4.3 2.5.6 3.3 1.1 3.3 2.2 0 1.2-1.2 2-3.1 2-1.9 0-3.4-.7-4.6-2.1l-1.9 2c1.5 1.8 3.8 2.8 6.4 2.8 3.6 0 6-1.9 6-4.8 0-2.7-1.9-3.7-5.3-4.4-2.4-.5-3.2-1-3.2-2 0-1.1 1.1-1.8 2.8-1.8 1.5 0 2.7.6 3.7 1.6z" fill="var(--card)"/><circle cx="25" cy="8" r="2.2" fill="var(--gold)"/></svg><span>Sheben<span class="ap">'</span>Store</span><small>грааль-лента</small></h1><div class="stats" id="stats"></div><button class="btn ftog" id="ftog" type="button" aria-expanded="true"></button></div>
+ <div class="fpanel" id="fpanel">
+ <div class="presets" id="presets"></div>
+ <div class="obanner" id="obanner" hidden></div>
+ <div class="bar">
+  <select id="f_cat" aria-label="Категория"></select><select id="f_brand" aria-label="Бренд"></select>
+  <select id="f_sort" aria-label="Сортировка"><option value="total">по оценке</option><option value="profit">по прибыли</option>
+   <option value="deal">по скидке к рынку</option><option value="desire">по желанности</option><option value="liq">по ликвидности</option>
+   <option value="price">дешевле</option><option value="fresh">свежие</option></select>
+  <input id="f_q" type="search" placeholder="поиск по названию">
+  <button class="btn ghost" id="more_btn" type="button" aria-expanded="false"></button>
+ </div>
+ <div class="more-f" id="more_f">
+ <div class="bar">
+  <select id="f_tier" aria-label="Тир"><option value="">A и B</option><option value="A">A: рыночная цена</option><option value="B">B: дёшево, проверить</option></select>
+  <select id="f_min" aria-label="Оценка"><option value="">оценка: любая</option><option value="50">оценка 50+</option>
+   <option value="60">оценка 60+</option><option value="70">оценка 70+</option><option value="80">оценка 80+</option></select>
+  <select id="f_risk" aria-label="Риск подделки"><option value="">риск: любой</option><option value="low">риск: только низкий</option>
+   <option value="mid">риск: не высокий</option></select>
+  <select id="f_src" aria-label="Откуда"><option value="">откуда: всё</option><option value="search">из поиска</option>
+   <option value="rec">из рекомендаций</option><option value="profile">из профилей</option></select>
+  <span class="rng"><label>¥ от <input id="f_minp" type="number" min="0" step="100" placeholder="0"></label>
+   <label>до <input id="f_maxp" type="number" min="0" step="100" placeholder="∞"></label></span>
+  <label>прибыль от ₽ <input id="f_prof" type="number" step="1000" placeholder="любая"></label>
+ </div>
+ <div class="bar">
+  <label class="tog"><input id="f_deal" type="checkbox">ниже рынка</label>
+  <label class="tog"><input id="f_new" type="checkbox">новое / подешевело</label>
+  <label class="tog"><input id="f_like" type="checkbox">только ★</label>
+  <label class="tog"><input id="f_yhb" type="checkbox">验货宝</label>
+  <label class="tog" title="Скрыть вещи, в описании которых написано, что они женские (или это женская модель). Вещи, где пол не указан, остаются"><input id="f_men" type="checkbox">без женского</label>
+  <label class="tog"><input id="f_pos" type="checkbox">только с выгодой</label>
+  <label class="tog"><input id="f_size" type="checkbox">ходовой размер</label>
+  <label class="tog"><input id="f_known" type="checkbox">скрыть «тип не ясен»</label>
+  <button class="btn ghost" id="f_reset" type="button">Сбросить</button>
+ </div>
+ </div>
+ <div id="note" class="note"></div>
+ </div>
+ <div id="banner" class="banner" onclick="location.reload()">Есть новые объявления — обновить</div>
+</div></header>
+<main><div class="wrap">
+ <ul class="grid intro" id="rows"></ul>
+ <section id="outs" class="outs" hidden><div class="oh"><div><h2>Вне каталога <span id="out_n" class="note"></span></h2>
+  <p class="note">Бренды, которых нет в каталоге, но которые могут быть интересны. ★ — интересно (наберётся несколько ★ по бренду — во «Обучении» появится «добавить в каталог»); ✕ «бренд — шлак» — этот бренд больше не показывать.</p></div>
+  <button class="btn go" id="next_find" type="button"></button></div>
+  <ul class="grid" id="out_rows"></ul></section>
+ <details id="rej"><summary id="rej_sum"></summary><div class="reasons" id="rej_reasons"></div>
+  <div class="rej"><table><tbody id="rej_rows"></tbody></table></div></details>
+</div></main>
+<script type="application/json" id="data">__DATA__</script>
+<script>
+const D=JSON.parse(document.getElementById("data").textContent);
+// поля, которые сервер не прислал (пустые), — пустые строки; «Что проверить» — из общего словаря
+function norm(r){for(const k of D.fields)if(r[k]==null)r[k]="";if(typeof r.checks==="number")r.checks=D.checks[r.checks];return r}
+D.good.forEach(norm);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=v=>v===""||v==null?null:Number(v);
+const fmt=v=>v==null?"—":Math.round(v).toLocaleString("ru-RU");
+const KEY="goofish_filters";
+let INTRO=0;const REDUCE=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const F0={cat:"",brand:"",tier:"",min:"",minp:"",maxp:"",prof:"",risk:"",src:"",q:"",deal:false,fresh:false,like:false,yhb:false,pos:false,size:false,known:false,men:false,sort:"total"};
+let F={...F0};
+try{Object.assign(F,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
+if(num(F.min)>100)F.min="";   // раньше сюда по ошибке вписывали цену
+function save(){try{localStorage.setItem(KEY,JSON.stringify(F))}catch(e){}}
+function opts(id,label,vals){$(id).innerHTML=`<option value="">${label}</option>`+vals.map(v=>`<option>${esc(v)}</option>`).join("")}
+opts("f_cat","Все категории",D.facets?D.facets.cats:[...new Set(D.good.map(r=>r.category))].sort());
+opts("f_brand","Все бренды",D.facets?D.facets.brands:[...new Set(D.good.map(r=>r.brand))].sort());
+const binds={f_cat:"cat",f_brand:"brand",f_tier:"tier",f_min:"min",f_minp:"minp",f_maxp:"maxp",f_prof:"prof",f_risk:"risk",f_src:"src",f_q:"q",f_sort:"sort"};
+const togs={f_deal:"deal",f_new:"fresh",f_like:"like",f_yhb:"yhb",f_pos:"pos",f_size:"size",f_known:"known",f_men:"men"};
+function syncInputs(){for(const[id,k]of Object.entries(binds))$(id).value=F[k];for(const[id,k]of Object.entries(togs))$(id).checked=F[k]}
+for(const[id,k]of Object.entries(binds))$(id).addEventListener("input",()=>{F[k]=$(id).value;save();render()});
+for(const[id,k]of Object.entries(togs))$(id).onchange=()=>{F[k]=$(id).checked;save();render()};
+$("f_reset").onclick=()=>{F={...F0};syncInputs();save();render()};
+syncInputs();
+// свои выпадающие списки вместо системных (системное меню Windows не перекрасить под стекло).
+// Настоящий <select> остаётся спрятанным: фильтры работают с ним как раньше.
+function glassSelect(sel){const w=document.createElement("div");w.className="gsel";sel.after(w);w.appendChild(sel);
+ const b=document.createElement("button");b.type="button";b.className="gsel-btn";b.setAttribute("aria-haspopup","listbox");w.appendChild(b);
+ const show=()=>{b.textContent=sel.options[sel.selectedIndex]?.text||""};show();sel.addEventListener("change",show);sel.addEventListener("input",show);
+ sel._show=show;
+ b.onclick=e=>{e.stopPropagation();const open=w.classList.contains("open");closeGsel();if(open)return;
+  const l=document.createElement("div");l.className="gsel-list";l.setAttribute("role","listbox");
+  l.innerHTML=[...sel.options].map((o,i)=>`<div role="option" class="${i===sel.selectedIndex?"on":""}" data-i="${i}">${esc(o.text)}</div>`).join("");
+  l.onclick=ev=>{const it=ev.target.closest("[data-i]");if(!it)return;sel.selectedIndex=+it.dataset.i;sel.dispatchEvent(new Event("input"));show();closeGsel()};
+  w.appendChild(l);w.classList.add("open")}}
+function closeGsel(){document.querySelectorAll(".gsel.open").forEach(w=>{w.classList.remove("open");w.querySelector(".gsel-list")?.remove()})}
+addEventListener("click",closeGsel);addEventListener("keydown",e=>{if(e.key==="Escape")closeGsel()});
+document.querySelectorAll(".bar select").forEach(glassSelect);
+// фильтры сворачиваются: кнопкой «Фильтры» (запоминается) и сами при прокрутке вниз — снова видны при прокрутке вверх
+let FHIDE=false;try{FHIDE=localStorage.getItem("goofish_fhide")==="1"}catch(e){}
+let AUTOHIDE=false,LASTY=scrollY;
+function activeCount(){return Object.keys(F0).filter(k=>k!=="sort"&&F[k]!==F0[k]&&F[k]!=="").length}
+function fpaint(){const hidden=FHIDE||AUTOHIDE,n=activeCount();document.querySelector("header").classList.toggle("collapsed",hidden);
+ $("ftog").setAttribute("aria-expanded",String(!hidden));$("ftog").innerHTML=`Фильтры${n?` <b>${n}</b>`:""} <i>${hidden?"▾":"▴"}</i>`}
+$("ftog").onclick=()=>{FHIDE=!(FHIDE||AUTOHIDE);AUTOHIDE=false;try{localStorage.setItem("goofish_fhide",FHIDE?"1":"0")}catch(e){}closeGsel();fpaint()};
+let FLOCK=0;   // после раскрытия/скрытия шапки страница сдвигается сама — эти «прокрутки» не считаем
+addEventListener("scroll",()=>{const y=scrollY,d=y-LASTY;
+ if(y<120&&AUTOHIDE){AUTOHIDE=false;LASTY=y;fpaint();return}   // у самого верха фильтры всегда видны
+ if(Math.abs(d)<8)return;LASTY=y;if(Date.now()<FLOCK)return;
+ const want=y>260&&d>0;if(want!==AUTOHIDE&&!document.querySelector(".gsel.open")){AUTOHIDE=want;FLOCK=Date.now()+450;fpaint()}},{passive:true});
+for(const id of [...Object.keys(binds),...Object.keys(togs)])$(id).addEventListener("input",fpaint);
+$("f_reset").addEventListener("click",fpaint);
+fpaint();
+const _sync=syncInputs;syncInputs=function(){_sync();document.querySelectorAll(".bar select").forEach(s=>s._show&&s._show())};
+// быстрые наборы фильтров: одна кнопка вместо пяти списков; редкие фильтры — под «Ещё фильтры»
+const PRESETS=[["Всё",{}],["Лучшее 70+",{min:"70"}],["Ниже рынка",{deal:true,sort:"deal"}],["Свежее",{fresh:true,sort:"fresh"}],
+ ["★ Отмеченные",{like:true}],["Дёшево — проверить",{tier:"B"}]];
+const presetOn=p=>Object.keys(F0).every(k=>String(F[k])===String(k in p?p[k]:F0[k]));
+function paintPresets(){$("presets").innerHTML=PRESETS.map(([t,p],i)=>`<button type="button" class="pre${presetOn(p)?" on":""}" data-i="${i}">${t}</button>`).join("")}
+$("presets").onclick=e=>{const b=e.target.closest("[data-i]");if(!b)return;F={...F0,...PRESETS[+b.dataset.i][1]};syncInputs();save();render();fpaint()};
+let MOREF=false;try{MOREF=localStorage.getItem("goofish_more_f")==="1"}catch(e){}
+const MORE_KEYS=["tier","min","risk","src","minp","maxp","prof","deal","fresh","like","yhb","pos","size","known","men"];
+function paintMore(){const n=MORE_KEYS.filter(k=>F[k]!==F0[k]&&F[k]!=="").length;document.querySelector("header").classList.toggle("more-open",MOREF);
+ $("more_btn").setAttribute("aria-expanded",String(MOREF));$("more_btn").innerHTML=`Ещё фильтры${n?` <b>${n}</b>`:""} ${MOREF?"▴":"▾"}`}
+$("more_btn").onclick=()=>{MOREF=!MOREF;try{localStorage.setItem("goofish_more_f",MOREF?"1":"0")}catch(e){}closeGsel();paintMore()};
+// уже открытые карточки приглушены — чтобы не проверять одно и то же дважды (помнит только это окно)
+let VIEWED=new Set();try{VIEWED=new Set(JSON.parse(localStorage.getItem("goofish_viewed")||"[]"))}catch(e){}
+function setViewed(id){if(VIEWED.has(id))return;VIEWED.add(id);try{localStorage.setItem("goofish_viewed",JSON.stringify([...VIEWED].slice(-3000)))}catch(e){}
+ const c=document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);if(c)c.classList.add("viewed")}
+addEventListener("click",e=>{const a=e.target.closest(".card a.ph,.card a.btn.go");if(a)setViewed(a.closest(".card").dataset.id)});
+$("note").textContent=D.live?"Живой отчёт: пока скрипт запущен, новые объявления появляются сами. ★ — интересно, ✕ — не то (скрыть навсегда).":
+ "Снимок отчёта. Отметки ★ и ✕ ставятся в живом отчёте на компьютере.";
+function thumb(u){if(!u)return"";if(u.startsWith("//"))u="https:"+u;
+ return /alicdn\.com/.test(u)&&!/_\d+x\d+/.test(u)?u+"_400x400.jpg":u}
+const fullImg=u=>(u.startsWith("//")?"https:"+u:u).replace(/^http:/,"https:");
+const lens=u=>"https://lens.google.com/uploadbyurl?url="+encodeURIComponent(fullImg(u));
+const yandex=u=>"https://yandex.ru/images/search?rpt=imageview&url="+encodeURIComponent(fullImg(u));
+function bar(l,v,t){v=num(v);return v==null?`<span class="b na" title="${t}: нет данных"><i></i>${l}</span>`:`<span class="b" title="${t}: ${v}"><i style="--v:${v}"></i>${l}</span>`}
+// сколько прошло с публикации на Goofish: «25 мин», «3 ч»; старше двух суток — не показываем
+function agoLong(s){const t=s?Date.parse(s):NaN,m=(Date.now()-t)/6e4;return !(m>=0)?"":m<60?Math.round(m)+" мин":m<2880?Math.round(m/60)+" ч":Math.round(m/1440)+" дн"}
+function ago(s){const t=s?Date.parse(s):NaN,m=(Date.now()-t)/6e4;return !(m>=0)?"":m<60?Math.round(m)+" мин":m<2880?Math.round(m/60)+" ч":""}
+function row(r){
+ const t=num(r.total),band=t>=75?3:t>=60?2:1,p=num(r.profit_rub),jp=r.site==="mercari",site=jp?"Mercari":"Goofish";
+ // у старых вставленных из текста объявлений нет id Goofish: ищем по началу названия
+ const link=r.url||"https://www.goofish.com/search?q="+encodeURIComponent(String(r.title).slice(0,30));
+ const flags=[],chips=[],pa=ago(r.posted);
+ if(r.status==="новое")flags.push('<span class="new">новое</span>');
+ if(pa)flags.push(`<span class="fresh" title="Выложено на ${site} ${esc(String(r.posted).replace("T"," "))}">выложено ${pa} назад</span>`);
+ if(num(r.prev_price))flags.push(`<span class="drop" title="${jp?"цена снижена":"было ¥"+fmt(num(r.prev_price))}">цена −${Math.round(100*(1-num(r.price_cny)/num(r.prev_price)))}%</span>`);
+ if(num(r.relist_price)>num(r.price_cny))flags.push(`<span class="drop" title="тот же продавец выставил вещь заново">перевыставлено, было ¥${fmt(num(r.relist_price))}</span>`);
+ if(r.grail)flags.push('<span class="g">★ грааль</span>');
+ if(ORDER&&D.orders[ORDER].ids[r.id]!=null)chips.push(`<span class="c ok" title="Прибыль, если продать по цене клиента">под заказ: +${fmt(D.orders[ORDER].ids[r.id])} ₽</span>`);
+ if(num(r.sim_text))chips.push(`<span class="c bt" title="Почти такой же текст объявления у других продавцов — так пишут сети реплик под копирку">тот же текст ещё у ${num(r.sim_text)} прод.</span>`);
+ if(num(r.sim_photo))chips.push(`<span class="c bt" title="Похожий снимок (пересохранённый или обрезанный) есть в объявлениях других продавцов — фото могли взять чужое">похожее фото ещё у ${num(r.sim_photo)-1} прод.</span>`);
+ if(r.fake_risk==="высокий")chips.push(`<span class="c r" title="${esc(r.risk_why)}">риск подделки: высокий</span>`);
+ else if(r.fake_risk==="средний")chips.push(`<span class="c bt" title="${esc(r.risk_why)}">риск подделки: средний</span>`);
+ if(String(r.tags).includes("验货宝"))chips.push('<span class="c ok" title="Goofish проверяет подлинность до отправки">验货宝</span>');
+ if(jp)chips.push(`<span class="c jp" title="Mercari, Япония: покупка через посредника, доставка через Владивосток — ставки на вкладке «Сделки»">Mercari · Япония</span>`);
+ if(r.jp_sold)chips.push(`<span class="c ok" title="Цены настоящих сделок на Mercari (проданные лоты) по этой модели или бренду и типу вещи за 4 месяца">в Японии продают за ${esc(r.jp_sold)}</span>`);
+ if(jp&&r.jp_cond)chips.push(`<span class="c" title="Состояние, как его указал продавец на Mercari">${esc(r.jp_cond)}</span>`);
+ if(r.tier==="B")chips.push('<span class="c bt" title="'+esc(r.low_signals)+'">B: дёшево, проверить</span>');
+ if(r.size){const sb=num(r.size_bonus)||0;chips.push(`<span class="c${sb>=5?" ok":sb<=-5?" bt":""}" title="Ликвидность ${sb>0?"+":""}${sb} за размер">размер ${esc(r.size)}${sb>=5?" · ходовой":sb<=-5?" · редкий":""}</span>`)}
+ if(num(r.dem_med))chips.push(`<span class="c${num(r.dem_med)>=2?" ok":""}" title="Медиана «хотят» в день с публикации по ${esc(r.dem_n)} объявлениям этой модели на Goofish${num(r.dem_day)?" (у этой вещи "+r.dem_day+"/день)":""}. Поправка к ликвидности за спрос: ${num(r.dem_adj)>0?"+":""}${num(r.dem_adj)||0}.">спрос ~${esc(r.dem_med)}/день</span>`);
+ if(r.subtype)chips.push(`<span class="c">${esc(r.subtype)}</span>`);
+ if(r.rarity)chips.push(`<span class="c" title="${esc(r.rarity)}">${esc(r.rarity.split(" [")[0])}</span>`);
+ if(r.condition)chips.push(`<span class="c">${esc(r.condition)}</span>`);
+ if(r.defects)chips.push(`<span class="c r">дефекты: ${esc(r.defects)}</span>`);
+ if(r.red_flags)chips.push(`<span class="c r">${esc(r.red_flags)}</span>`);
+ const mono=`<span class="mono"><b>${esc(String(r.brand||"?").slice(0,2))}</b><span>${esc(r.category)}</span></span>`;
+ const img=r.image?`<img loading="lazy" referrerpolicy="no-referrer" alt="" src="${esc(thumb(r.image))}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${esc(r.image)}'}else this.remove()">`:"";
+ const model=[r.model,r.variant].filter(Boolean).map(esc).join(" · ");
+ const price=num(r.price_cny),yen=num(r.price_jpy);
+ // тип вещи не ясен: оценка внутри считается по самой скромной цене бренда, но показывать её как прибыль — вводить в заблуждение
+ const unk=String(r.category).startsWith("Тип");
+ const prof=unk?`<div class="sub" title="Не понятно, кроссовки это, одежда или аксессуар — цена продажи у них разная. Откройте карточку: по описанию тип уточнится и появится расчёт.">тип не ясен —<br>откройте карточку</div>`:p==null?`<div class="sub">${r.outside?"бренд не в каталоге":"нет цены продажи"}</div>`:`<div class="${p>0?"pos":"neg"}">${p>0?"+":""}${fmt(p)} ₽</div><div class="sub" title="${esc(r.sell_note||"Цена продажи б/у в РФ из каталога (вкладка «Цены»)")}">продажа ≈ ${fmt(num(r.sell_rub))} ₽${/снижено/.test(r.sell_note||"")?' <span class="snote">↓</span>':""}${r.sell_src=="market"?' <span class="ssrc">рынок РФ</span>':r.sell_src=="stub"?' <span class="ssrc stub">заглушка</span>':""} · ${esc(r.best_channel)}</div>`;
+ const aiBtns=r.image?`<button class="btn" title="Проверить фото ИИ (Gemini API) — ответ появится на карточке" onclick="aiCheck('${esc(r.id)}',this)">ИИ</button><button class="btn" onclick="gemPop('${esc(r.id)}',this)" title="Gemini посмотрит фото и ответит здесь же">Gemini</button>`:"";
+ // «Похожее»: поиск на Goofish по бренду и модели (без модели — бренд и тип вещи), откроется во вкладке Goofish
+ // по фото (Gemini составляет запрос); без ключа или лимита — текстовый запрос карточки
+ const simBtn=r.sq||r.image?`<button class="btn" onclick="simFind('${esc(r.id)}',this)" title="Найти похожие на Goofish: Gemini посмотрит фото и составит запрос${r.sq?` (без него — «${esc(r.sq)}»)`:""}">Похожее</button>`:"";
+ const inb=(D.basket||[]).includes(r.id);
+ const acts=D.live?`<span class="xa">`+aiBtns+simBtn+(jp?`<button class="btn ${inb?"on":""}" title="Корзина Японии: несколько вещей одной посылкой через посредника — расчёт на вкладке «Сделки»" onclick="basket('${esc(r.id)}',this)">${inb?"✓ в корзине":"В корзину"}</button>`:"")+`<button class="btn ${r.deal?"on":""}" title="${r.deal?"Уже в «Сделках»":"Записать покупку во вкладку «Сделки»"}" onclick="buy('${esc(r.id)}',this)">${r.deal?"✓ куплено":"Купил"}</button></span><button class="btn ${r.mark==="like"?"on":""}" title="Интересно" onclick="mark('${esc(r.id)}','${r.mark==="like"?"":"like"}')">★</button><button class="btn" title="Не то, скрыть" onclick="askHide(this)">✕</button>`:"";
+ const why=D.live?`<div class="why" hidden><span class="sub">Скрыть — нажмите причину:</span>${(r.outside_brand?[...WHY,JUNK]:WHY).map(w=>`<button class="c" title="${esc(WHY_TIP[w]||"")}" onclick="mark('${esc(r.id)}','hide','${w}')">${w}</button>`).join("")}<button class="c" onclick="mark('${esc(r.id)}','hide')">без причины</button><button class="c cancel" onclick="askHide(this)">отмена</button></div>`:"";
+ const dealb=num(r.deal_pct)?`<span class="dealb" title="Обычная цена на Goofish ≈ ¥${fmt(num(r.deal_med))} (медиана по ${r.deal_n} объявлениям ${esc(r.model?r.brand+" "+r.model:r.brand+", "+r.category)})">−${r.deal_pct}% к рынку</span>`:"";
+ // главные цифры плотной карточки: цена там · чистая прибыль / цена в РФ · риск · сколько с публикации / бренд и модель
+ const sell=num(r.sell_rub),when=agoLong(r.posted),risky=r.fake_risk==="высокий"||r.fake_risk==="средний";
+ const kn=`<div class="kn"><div class="k1"><b class="kp" title="Цена на ${site}">${jp?`¥${fmt(yen)}<small> JP</small>`:`¥${fmt(price)}`}</b>`
+  +(unk||p==null?`<span class="kpr na" title="${unk?"Тип вещи не ясен — откройте карточку, по описанию появится расчёт":"Нет цены продажи: бренд не в каталоге"}">прибыль ?</span>`
+   :`<b class="kpr ${p>0?"pos":"neg"}" title="Чистая прибыль через «${esc(r.best_channel)}» после всех затрат (${fmt(num(r.cost_rub))} ₽)${D.costs?". Нажмите — расчёт по статьям и каналам продажи":""}"${D.costs?` onclick="calcPop('${esc(r.id)}',this)"`:""}>${p>0?"+":""}${fmt(p)} ₽</b>`)
+  +`</div><div class="k2"><span title="Цена продажи в России${r.ru_mkt?" · рынок: "+esc(r.ru_mkt):""}">РФ ${sell?"≈ "+fmt(sell)+" ₽":"—"}</span>`
+  +(risky?`<i class="kw" title="Риск подделки ${esc(r.fake_risk)}: ${esc(r.risk_why)}">⚠ риск</i>`:String(r.tags).includes("验货宝")?'<i class="kok" title="Goofish проверяет подлинность до отправки">验货宝</i>':"")
+  +`<span title="${when?"Выложено на "+site+" "+esc(String(r.posted).replace("T"," ")):"Время публикации неизвестно; поймано "+esc(r.first_seen)}">${when?when+" назад":esc(String(r.first_seen).slice(5))}</span></div>`
+  +`<div class="k3"><b>${esc(r.brand)}</b> ${model||esc(r.category)}</div></div>`;
+ const seen=VIEWED.has(r.id)?'<span class="seen">смотрел</span>':"";
+ return `<li class="card${r.mark==="like"?" liked":""}${r.grail?" grail":t>=80?" hot":""}${VIEWED.has(r.id)?" viewed":""}${FOC===r.id?" kf":""}" data-id="${esc(r.id)}" style="--i:${Math.min(INTRO++,14)}">
+ <a class="ph" href="${esc(link)}" target="_blank" rel="noopener">${img}${mono}<span class="tot t${band}">${t}</span>${flags.length?`<span class="flag">${flags.join("")}</span>`:""}${dealb}${seen}</a>
+ <div class="body">
+  ${kn}
+  <div class="meta"><span class="brand">${esc(r.brand)}</span> <span title="${esc(r.category)}${model?" · "+model:""}">${esc(r.category)}${model?" · "+model:""}</span>${when?`<time title="Выложено на ${site} ${esc(String(r.posted).replace("T"," "))}">${when}</time>`:""}</div>
+  <div class="money"><div><div class="price">${jp?`¥${fmt(yen)} <small>JP</small>`:`¥${fmt(price)}${num(r.prev_price)?`<s>¥${fmt(num(r.prev_price))}</s>`:""}`}</div>
+   <div class="sub">≈ ${fmt(jp&&D.costs?yen*D.costs.jpy_rate:price*D.rate)} ₽${!num(r.deal_pct)&&num(r.price_vs_median)&&num(r.price_vs_median)<.35?` · <span class="snote" title="Цена ниже трети обычной: продавец не знает цены — или подделка">×${r.price_vs_median} от рынка</span>`:""}</div></div>
+   <div class="profit">${prof}</div></div>
+  <p class="ttl" title="${esc(r.title)}">${esc(r.title)}</p>
+  ${r.outside?`<div class="verdict ${r.outside==="интересно"?"yes":"maybe"}"><b>${esc(r.outside)}</b>${r.verdict_why?"— "+esc(r.verdict_why):""}${r.has_desc?"":' <span class="sub">· описание ещё не загружено — откройте карточку</span>'}</div>`:""}
+  ${!unk&&p!=null&&num(r.cost_rub)?`<div class="calc${D.costs?" click":""}" ${D.costs?`onclick="calcPop('${esc(r.id)}',this)" `:""}title="Расчёт по цене продажи ≈ ${fmt(num(r.sell_rub))} ₽${D.costs?" — нажмите: разбивка и «если сторгуюсь»":""}">
+   <div><small>Затраты всего</small><b>${fmt(num(r.cost_rub))} ₽</b></div>
+   ${jp?`<div class="${yen<=num(r.max_buy_jpy)?"ok":"no"}"><small>Брать до</small><b>¥${fmt(num(r.max_buy_jpy))} JP</b></div>`
+     :`<div class="${price<=num(r.max_buy_cny)?"ok":"no"}"><small>Брать до</small><b>¥${fmt(num(r.max_buy_cny))}</b></div>`}
+   <div class="${p>0?"ok":"no"}"><small>Окупаемость</small><b>${p>0?"+":""}${Math.round(100*p/num(r.cost_rub))}%</b></div></div>`:""}
+  ${r.ru_mkt?`<div class="rumkt${r.ru_diff!==""?" off":""}" title="Цены России: посты Telegram-каналов и объявления Avito/Oskelly за 4 месяца (${esc(r.ru_src)})"><b>Россия</b> ${esc(r.ru_mkt)}${r.ru_diff!==""?` · <b class="d">каталог ${r.ru_diff>0?"выше":"ниже"} рынка на ${Math.abs(r.ru_diff)}%</b>`:""}</div>`:""}
+  ${r.ai_txt?`<div class="aiv ${esc(r.ai_risk)}"><b>ИИ по фото</b> ${esc(r.ai_txt)}</div>`:""}
+  ${chips.length?`<div class="chips">${chipList(chips)}</div>`:""}
+  <div class="chkrow">${r.checks||r.risk_why||r.image?`<details class="chk"><summary>Что проверить</summary>${r.risk_why?`<p class="sub">${esc(r.risk_why)}</p>`:""}<ul>${String(r.checks).split(" | ").filter(Boolean).map(c=>`<li>${esc(c)}</li>`).join("")}</ul>${r.image?`<p>Найти это фото в сети (если оно есть у магазинов реплик или на Yupoo — подделка): <a href="${esc(lens(r.image))}" target="_blank" rel="noopener">Google Lens</a> · <a href="${esc(yandex(r.image))}" target="_blank" rel="noopener">Яндекс</a></p>`:""}</details>`:""}
+  <div class="bars">${bar("выг",r.s_profit,"Выгода")}${bar("ликв",r.s_liq,"Ликвидность")}${bar("сост",r.s_cond,"Состояние")}${bar("жел",r.s_desire,"Желанность")}${bar("надёж",r.s_trust,"Надёжность")}</div></div>
+  <div class="foot"><span class="where" title="${esc(r.seller)}">${esc(r.city)||"город не указан"} · ${jp?"лайков":"хотят"} ${esc(r.want)||0}${r.seller?" · "+esc(String(r.seller).slice(0,16)):""}</span>
+   <span class="act"><a class="btn go" href="${esc(link)}" target="_blank" rel="noopener">${r.url?"Открыть":"Найти"}</a>${acts}${D.live?`<button class="btn mx" type="button" title="Ещё: проверка ИИ, Gemini, похожие, «Купил»" onclick="actMenu(this)">•••</button>`:""}<button class="btn mo" type="button" title="Подробнее: расчёт, цены России, что проверить, ИИ, «Купил»" onclick="this.closest('.card').classList.toggle('open')">⋯</button></span></div>
+  ${why}
+ </div></li>`}
+// чипы: сначала тревожные (красные), потом хорошие (зелёные), потом «проверить», потом остальное; видно 4, остальное — по «+N»
+const CHIP_MAX=4,chipRank=c=>/class="c r/.test(c)?0:/class="c (ok|jp)/.test(c)?1:/class="c bt/.test(c)?2:3;
+function chipList(chips){const a=chips.map((c,i)=>[chipRank(c),i,c]).sort((x,y)=>x[0]-y[0]||x[1]-y[1]).map(x=>x[2]);
+ if(a.length<=CHIP_MAX+1)return a.join("");
+ return a.slice(0,CHIP_MAX).join("")+a.slice(CHIP_MAX).map(c=>c.replace('<span class="c','<span class="cx c')).join("")
+  +`<button class="c cm" type="button" title="Показать все пометки" onclick="this.parentNode.classList.add('all')">+${a.length-CHIP_MAX}</button>`}
+function actMenu(b){const c=b.closest(".card"),on=!c.classList.contains("xo");document.querySelectorAll(".card.xo").forEach(x=>x.classList.remove("xo"));
+ if(on)c.classList.add("xo")}
+addEventListener("click",e=>{if(!e.target.closest(".xa,.mx"))document.querySelectorAll(".card.xo").forEach(x=>x.classList.remove("xo"))});
+const WHY=["женское","подделка","не мой стиль","не оправдывает цену","неликвидный размер","состояние","не тот цвет","не та вещь"],JUNK="бренд — шлак";
+// что делает причина: скрывает только эту вещь или потом и похожие (видно при наведении на кнопку)
+const ONLY="Скроется только эта вещь — похожие продолжат попадаться";
+const WHY_TIP={"состояние":ONLY,"не тот цвет":ONLY,"не та вещь":ONLY,
+ "не оправдывает цену":"Эта вещь. После 2 таких скрытий по одной модели Щебень сам скрывает её же дороже этой цены (отменить — «Обучение»)",
+ "неликвидный размер":"Эта вещь. После 2 таких скрытий по одной модели и размеру похожие скрываются сами (отменить — «Обучение»)",
+ "подделка":"Эта вещь. Продавец, у которого 2 вещи помечены подделкой, попадает в список продавцов реплик; частые слова таких объявлений «Обучение» предложит отсеивать",
+ "женское":"Эта вещь. Частые слова таких объявлений «Обучение» предложит отсеивать как женское — только после вашего согласия",
+ "не мой стиль":"Эта вещь. По частым словам таких объявлений «Обучение» может предложить снижать оценку — только после вашего согласия",
+ [JUNK]:"Бренд целиком переедет в «шлак» — все его вещи перестанут попадаться"};
+let SEEN=new Set();try{SEEN=new Set(JSON.parse(localStorage.getItem("goofish_seen_finds")||"[]"))}catch(e){}
+const unseen=()=>PAGED?UNSEEN.filter(r=>!SEEN.has(r.id)):D.good.filter(r=>r.outside&&!r.has_desc&&!r.mark&&!SEEN.has(r.id)).sort((a,b)=>b.total-a.total);
+function nextFind(){const r=unseen()[0];if(!r)return;SEEN.add(r.id);
+ try{localStorage.setItem("goofish_seen_finds",JSON.stringify([...SEEN].slice(-500)))}catch(e){}
+ window.open(r.url,"_blank");render()}
+$("next_find").onclick=nextFind;
+// «ИИ»: проверка сразу (без очереди), ответ — плашкой на этой же карточке
+function aiCheck(id,el){el.disabled=true;el.textContent="смотрю…";el.classList.add("busy");
+ gemPost({id}).then(j=>{const r=D.good.find(x=>x.id===id),a=j.result;if(!r||!a)throw "нет ответа";
+   r.ai_txt=[a.brand,a.item,"риск подделки "+((RISK[a.fake_risk]||["?"])[0]),a.verdict].filter(Boolean).join("; ");r.ai_risk=a.fake_risk;
+   const card=document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);if(card){const t=document.createElement("div");t.innerHTML=row(r);card.replaceWith(t.firstElementChild)}})
+ .catch(e=>{el.disabled=false;el.classList.remove("busy");el.textContent="ИИ";toast(`ИИ: ${esc(e)}`)})}
+// мини-окно Gemini рядом с кнопкой: проверка фото и вопросы, ответ здесь же (через Gemini API)
+let GP=null;
+const RISK={low:["низкий","ok"],medium:["средний","mid"],high:["высокий","bad"]};
+const GEN={men:"мужское",women:"женское",unisex:"унисекс",unknown:"не ясно"};
+function gemPop(id,btn){if(GP&&GP.id===id){gemClose();return}gemClose();
+ const p=document.createElement("div");p.id="gpop";p.innerHTML=`<div class="gh"><b>✦ Gemini</b><span class="sub">смотрит фото</span>
+  <button class="btn ghost sm" title="Скопировать фото и открыть Gemini в браузере" onclick="askGemini('${esc(id)}')">в браузере</button><button class="btn ghost sm" onclick="gemClose()">✕</button></div>
+  <div class="gb" id="gbody"><div class="gload"><i></i><i></i><i></i><span>Gemini смотрит фото…</span></div></div>
+  <form class="gq" onsubmit="gemAsk(event)"><input id="gin" placeholder="Спросить про эту вещь…" autocomplete="off"><button class="btn go sm">→</button></form>`;
+ document.body.appendChild(p);GP={id,btn,hist:[]};gemPlace();
+ gemPost({id}).then(j=>{if(!GP||GP.id!==id)return;$("gbody").innerHTML=gemCard(j.result);gemPlace();const r=D.good.find(x=>x.id===id);
+   if(r&&j.result&&!r.ai_txt){r.ai_txt=[j.result.item,"риск "+(RISK[j.result.fake_risk]||["?"])[0],j.result.verdict].filter(Boolean).join("; ");r.ai_risk=j.result.fake_risk}})
+ .catch(e=>{$("gbody").innerHTML=`<p class="gerr">${esc(e)}</p>`})}
+// калькулятор сделки: та же формула, что cost_parts() на сервере; ставки — вкладка «Сделки»
+// kg/src — вес посылки, посчитанный сервером (item_weight: из объявления, по слову в названии или по категории)
+// jp — Mercari: pc в иенах, затраты — посредник и доставка из Японии (как cost_parts(site="mercari") на сервере)
+// минимум комиссии и сбора посредника в иенах: $ (OZTA) по курсу, иначе jp_fee_min
+const jpMin=c=>c.jp_min_usd?c.jp_min_usd*c.usd_rate/Math.max(c.jpy_rate,1e-6):c.jp_fee_min;
+function costParts(pc,k,kg0,src,jp){const c=D.costs,r=c.rate*(1+c.rate_markup),w=c.weights||{},kg=num(kg0)||(w[k]??w["?"]??1);
+ if(jp){const jr=c.jpy_rate*(1+c.jp_markup),g=pc*jr,over=g/Math.max(c.eur_rate,1)-c.duty_free_eur,mn=jpMin(c),t=kg*c.jp_intl_kg;
+  return [["вещь",g],["комиссия за выкуп",Math.max(pc*c.jp_fee,pc?mn:0)*jr],["доставка по Японии",c.jp_dom*jr],
+   [`перевозчик до Владивостока, ${kg} кг${src?` (${src})`:""}`,t*jr],["сбор посредника за доставку",Math.max(t*c.jp_ship_fee,t?mn:0)*jr],
+   ["пошлина",Math.max(over,0)*c.duty_rate*c.eur_rate],["Владивосток → Бердск",c.jp_ru_ship],["прочее за посылку",c.jp_extra]]}
+ const g=pc*r,over=g/Math.max(c.eur_rate,1)-c.duty_free_eur;
+ return [["вещь",g],["комиссия байера",g*c.buyer_fee],["защита от рисков",g*c.protect],["доставка по Китаю",c.cn_ship_cny*r],
+  [`международная доставка, ${kg} кг${src?` (${src})`:""}`,Math.max(kg*c.intl_per_kg,c.intl_min)],["пошлина",Math.max(over,0)*c.duty_rate*c.eur_rate],
+  ["доставка по РФ",c.ru_ship],["фотоотчёт и сборы",c.photo],["экспертиза",c.expert_cny*r]]}
+// продажа по каналам из каталога: цена на площадке, её комиссия, налог и «прочее/возвраты», что остаётся чистыми
+function chanRows(cost,sell){return (D.channels&&D.channels.length?D.channels:[{name:"продажа"}]).map(ch=>{const g=sell*(ch.price_factor??1),
+  fee=g*(ch.fee_rate||0)+(ch.fixed_fee_rub||0),tax=g*((D.tax||0)+D.costs.other);return{ch:ch.name,g,fee,tax,p:g-fee-tax-cost}})}
+function bestProfit(cost,sell){let b=null;
+ for(const ch of (D.channels&&D.channels.length?D.channels:[{name:"продажа"}])){const g=sell*(ch.price_factor??1),
+  pr=g*(1-(ch.fee_rate||0))-(ch.fixed_fee_rub||0)-g*((D.tax||0)+D.costs.other)-cost;if(!b||pr>b.p)b={p:pr,ch:ch.name}}return b}
+function calcPop(id,btn){if(GP&&GP.id===id&&GP.calc){gemClose();return}gemClose();const r=D.good.find(x=>x.id===id);if(!r||!D.costs)return;
+ const c=D.costs,jp=r.site==="mercari",p=document.createElement("div");p.id="gpop";p.className="cpop";
+ p.innerHTML=`<div class="gh"><b>Калькулятор сделки</b><span class="sub">${esc(r.brand)} · ${esc(r.category)}</span><button class="btn ghost sm" onclick="gemClose()">✕</button></div>
+ <div class="gb"><div class="cin"><label>Если сторгуюсь до, ¥${jp?" (иены)":""}<input id="c_p" type="number" min="0" value="${jp?num(r.price_jpy):num(r.price_cny)}"></label>
+  <label>Продам за, ₽<input id="c_s" type="number" min="0" value="${num(r.sell_rub)||""}"></label></div><div id="c_out"></div>
+  <p class="sub">Курс ¥ ${c.rate}${c.rate_markup?` + ${Math.round(c.rate_markup*1000)/10}%`:""}${c.rate_date?` · ${c.rate_src==="рынок"?"рынок":"ЦБ"} на ${esc(c.rate_date)}`:""}${c.pay_rate?` (KwikPay ${c.pay_rate} ₽ на ${esc(c.pay_date)})`:""}. ${jp?` Иена ${c.jpy_rate} ₽${c.jp_markup?` + ${Math.round(c.jp_markup*1000)/10}%`:""}, ${c.jp_profile||"посредник"}: выкуп ${Math.round(c.jp_fee*100)}% (мин. ¥${fmt(Math.round(jpMin(c)))}), перевозчик ¥${fmt(c.jp_intl_kg)}/кг + ${Math.round(c.jp_ship_fee*100)}% (оценка, уточнить у посредника).`:""} Ставки меняются на вкладке «Сделки».</p></div>`;
+ document.body.appendChild(p);GP={id,btn,calc:1};
+ const upd=()=>{const pc=+$("c_p").value||0,s=+$("c_s").value||0,parts=costParts(pc,r.ckey,r.kg,r.kg_src,jp),cost=parts.reduce((a,x)=>a+x[1],0),b=s?bestProfit(cost,s):null;
+  $("c_out").innerHTML=`<table class="ct">${parts.filter(x=>Math.round(x[1])).map(x=>`<tr><td>${esc(x[0])}</td><td>${fmt(Math.round(x[1]))} ₽</td></tr>`).join("")}
+   <tr class="tt"><td>Затраты всего</td><td>${fmt(Math.round(cost))} ₽</td></tr></table>
+   ${s?`<table class="ct chn"><tr><th>Где продам</th><th>цена</th><th>комиссия</th><th>налог, возвраты</th><th>чистыми</th></tr>
+    ${chanRows(cost,s).map(x=>`<tr class="${b&&x.ch===b.ch?"tt ":""}${x.p>0?"ok":"no"}"><td>${esc(x.ch)}</td><td>${fmt(x.g)}</td><td>${x.fee?"−"+fmt(x.fee):"0"}</td><td>${x.tax?"−"+fmt(x.tax):"0"}</td>
+     <td>${x.p>0?"+":""}${fmt(x.p)} ₽ · ${Math.round(100*x.p/Math.max(cost,1))}%</td></tr>`).join("")}</table>
+   <p class="sub">«Чистыми» = цена на площадке − её комиссия − налог и возвраты − все затраты выше. Жирным — лучший канал: по нему считается прибыль в ленте.</p>`:""}`;gemPlace()};
+ // «Купил» записывает цену в юанях (как вся лента): иены Mercari переводим в юань-эквивалент
+ $("c_p").oninput=$("c_s").oninput=upd;upd();GP.price=()=>jp?Math.round((+$("c_p").value||0)*c.jpy_rate/c.rate*100)/100:+$("c_p").value||0}
+// «Купил» → запись во вкладку «Сделки» (цена — из калькулятора, если он открыт для этой вещи)
+function buy(id,el){const r=D.good.find(x=>x.id===id);if(!r)return;
+ if(r.deal){toast('Уже в «Сделках» — <a href="/deals">открыть</a>',true);return}
+ const price=GP&&GP.calc&&GP.id===id?GP.price():num(r.price_cny);el.disabled=true;
+ fetch("/deal",{method:"POST",headers:{"Content-Type":"application/json","X-Goofish-UI":"1"},body:JSON.stringify({id,price_cny:price})})
+ .then(x=>x.json().then(j=>{if(!x.ok)throw j.error||"ошибка";r.deal=1;el.classList.add("on");el.textContent="✓ куплено";
+   toast(`Записал покупку за ¥${fmt(price)} — <a href="/deals">вкладка «Сделки»</a>`,true)}))
+ .catch(e=>{el.disabled=false;toast("Не записалось: "+esc(e))})}
+// «Похожее»: запрос от Gemini по фото -> поиск во вкладке Goofish (в окне приложения — через app.pyw, иначе новой вкладкой)
+function openGoofish(u){if(window.chrome&&window.chrome.webview)window.chrome.webview.postMessage(JSON.stringify({open_goofish:u}));else window.open(u,"_blank")}
+function simFind(id,btn){const r=D.good.find(x=>x.id===id);if(!r)return;const t=btn.textContent,go=q=>openGoofish("https://www.goofish.com/search?q="+encodeURIComponent(q));
+ btn.disabled=true;btn.textContent="смотрю фото…";
+ fetch("/ai/similar",{method:"POST",headers:{"Content-Type":"application/json","X-Goofish-UI":"1"},body:JSON.stringify({id})}).then(x=>x.json())
+  .then(j=>{const q=j.q||r.sq;if(!q)throw "нет запроса";go(q);btn.title=(j.fallback?"По тексту (Gemini недоступен): «":"Gemini по фото: «")+q+"»"})
+  .catch(()=>{if(r.sq)go(r.sq)}).finally(()=>{btn.disabled=false;btn.textContent=t})}
+function gemPost(body){return fetch("/ai/ask",{method:"POST",headers:{"Content-Type":"application/json","X-Goofish-UI":"1"},body:JSON.stringify(body)})
+ .then(r=>r.json().then(j=>{if(!r.ok)throw j.error||"ошибка";return j}))}
+function gemCard(a){if(!a)return"";const rk=RISK[a.fake_risk]||["?",""];
+ return `<div class="gr"><div class="gt">${esc(a.brand||"бренд не определён")}<span class="sub"> · ${esc(a.item||"")}</span></div>
+  <div class="gchips"><span class="c ${rk[1]}">риск подделки: ${rk[0]}</span><span class="c">${GEN[a.gender]||""}</span><span class="c">состояние ~${esc(a.condition_pct)}%</span>
+  ${a.studio_photo?'<span class="c bt">студийное фото</span>':""}${a.packaging_shown?'<span class="c bt">упаковка в кадре</span>':""}</div>
+  ${(a.fake_signs||[]).length?`<ul>${a.fake_signs.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
+  <p class="gv">${esc(a.verdict||"")}</p></div>`}
+function gemAsk(ev){ev.preventDefault();const q=$("gin").value.trim();if(!q||!GP)return;$("gin").value="";
+ const b=$("gbody");b.insertAdjacentHTML("beforeend",`<div class="gu">${esc(q)}</div><div class="ga" id="gpend"><div class="gload"><i></i><i></i><i></i></div></div>`);b.scrollTop=b.scrollHeight;
+ gemPost({id:GP.id,question:q,history:GP.hist}).then(j=>{GP.hist.push({role:"user",text:q},{role:"model",text:j.answer});
+   $("gpend").outerHTML=`<div class="ga">${esc(j.answer).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^\s*[*-]\s+/gm,"• ").replace(/\n/g,"<br>")}</div>`;b.scrollTop=b.scrollHeight})
+ .catch(e=>{$("gpend").outerHTML=`<div class="ga gerr">${esc(e)}</div>`})}
+function gemPlace(){if(!GP)return;const p=$("gpop"),r=GP.btn.getBoundingClientRect(),w=Math.min(GP.calc?470:380,innerWidth-24);p.style.width=w+"px";
+ let x=r.right+10;if(x+w>innerWidth-12)x=r.left-w-10;if(x<12)x=Math.max(12,Math.min(r.left,innerWidth-w-12));
+ const h=p.offsetHeight;let y=Math.min(r.top-40,innerHeight-h-12);y=Math.max(12,y);p.style.left=x+"px";p.style.top=y+"px"}
+function gemClose(){const p=$("gpop");if(p)p.remove();GP=null}
+addEventListener("resize",gemPlace);addEventListener("scroll",gemPlace,{passive:true});
+addEventListener("keydown",e=>{if(e.key==="Escape")gemClose()});
+function askGemini(id){const r=D.good.find(x=>x.id===id);if(!r)return;
+ const q=`Проверь, пожалуйста, объявление с Goofish (Xianyu) на подлинность и стоит ли брать для перепродажи.
+Фото: ${fullImg(r.image)}
+Название: ${r.title}
+Цена: ¥${r.price_cny} (≈ ${fmt(r.price_cny*D.rate)} ₽)
+Бренд/модель: ${[r.brand,r.model,r.category].filter(Boolean).join(" · ")}
+Метки площадки: ${r.labels||"—"}
+На что смотреть: ${String(r.checks).split(" | ").filter(Boolean).join("; ")}
+Бренд в объявлении продавец мог указать неверно — определи по фото.
+Ответь: 1) что за вещь, какой бренд/коллаборация и для кого (муж/жен); 2) риск подделки — низкий/средний/высокий и конкретные признаки по фото; 3) что попросить у продавца; 4) брать или нет.`;
+ GQ=q;toast("Копирую фото…");
+ // фото → PNG → буфер обмена; Gemini открывается в обычном браузере, где вы уже вошли в Google
+ fetch("/img?u="+encodeURIComponent(fullImg(r.image))).then(x=>{if(!x.ok)throw 0;return x.blob()}).then(createImageBitmap)
+ .then(bmp=>{const c=document.createElement("canvas");c.width=bmp.width;c.height=bmp.height;c.getContext("2d").drawImage(bmp,0,0);
+   return new Promise(res=>c.toBlob(res,"image/png"))})
+ .then(png=>navigator.clipboard.write([new ClipboardItem({"image/png":png})]))
+ .then(()=>toast(`<b>Фото скопировано.</b> В Gemini нажмите Ctrl+V, затем вставьте текст запроса.`,true))
+ .catch(()=>toast(`Фото не скопировалось — <a href="${esc(fullImg(r.image))}" target="_blank">откройте его</a> и перетащите в Gemini.`,true))
+ .finally(()=>fetch("/open/gemini",{method:"POST",headers:{"X-Goofish-UI":"1"}}))}
+let GQ="";
+function toast(html,withText){let t=$("gtoast");if(!t){t=document.createElement("div");t.id="gtoast";document.body.appendChild(t)}
+ t.innerHTML=`<div>${html}</div>${withText?`<button class="btn go" onclick="copyQ(this)">Скопировать текст запроса</button>`:""}<button class="btn ghost" onclick="this.parentNode.remove()">✕</button>`}
+function copyQ(el){navigator.clipboard.writeText(GQ).then(()=>{el.textContent="Текст скопирован — Ctrl+V в Gemini"}).catch(()=>prompt("Скопируйте запрос:",GQ))}
+function basket(id,el){const on=!el.classList.contains("on");el.disabled=true;
+ fetch("/basket",{method:"POST",headers:{"Content-Type":"application/json","X-Goofish-UI":"1"},body:JSON.stringify({id,on})}).then(x=>x.json())
+  .then(j=>{D.basket=j.items.map(x=>x.id);el.classList.toggle("on",on);el.textContent=on?"✓ в корзине":"В корзину";
+   const k=j.calc;toast(on?`В корзине Японии ${j.items.length} вещ.`+(k.together!=null?`: посылкой ${k.together>0?"+":""}${fmt(k.together)} ₽, поодиночке ${k.alone>0?"+":""}${fmt(k.alone)} ₽`:"")+` — <a href="/deals">вкладка «Сделки»</a>`:"Убрано из корзины")})
+  .catch(()=>toast("Корзина не ответила")).finally(()=>{el.disabled=false})}
+function askHide(el){const w=el.closest(".card").querySelector(".why");w.hidden=!w.hidden}
+const SORT={total:(a,b)=>b.total-a.total,profit:(a,b)=>(num(b.profit_rub)??-1e9)-(num(a.profit_rub)??-1e9),
+ desire:(a,b)=>b.s_desire-a.s_desire,liq:(a,b)=>b.s_liq-a.s_liq,price:(a,b)=>a.price_cny-b.price_cny,
+ fresh:(a,b)=>String(b.first_seen).localeCompare(String(a.first_seen)),
+ deal:(a,b)=>(num(b.deal_pct)||0)-(num(a.deal_pct)||0)||b.total-a.total};
+// карточки порциями по мере прокрутки. В приложении (D.paged) вещи отдаёт сервер по 50 штук (/feed): страница не
+// держит всю базу, фильтры и сортировка — на сервере. В файле-снимке вещи встроены: фильтруем на месте, как раньше.
+// D.good в приложении — только уже загруженные карточки (по ним работают ★, «Купил», калькулятор)
+const PAGE=48,MORE='<li class="more" id="more">Загружаю ещё…</li>',PAGED=!!D.paged,BYID=new Set();
+let LIST=[],SHOWN=0,IO=null,TOTAL=0,REQ=0,BUSY=false,UNSEEN=[],RT=0;
+function cache(rows){const out=[];for(const r of rows){if(BYID.has(r.id))continue;BYID.add(r.id);D.good.push(norm(r));out.push(r)}return out}
+function fq(part,offset){const u=new URLSearchParams();for(const k in F0){const v=F[k];if(v!==""&&v!==false&&v!=null)u.set(k,v===true?"1":v)}
+ if(ORDER)u.set("order",ORDER);if(part)u.set("part",part);u.set("offset",offset);
+ return fetch("/feed?"+u).then(r=>{if(!r.ok)throw 0;return r.json()})}
+function watchMore(){if(IO)IO.disconnect();const m=$("more");if(!m)return;
+ IO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;
+  if(PAGED){if(BUSY)return;BUSY=true;const my=REQ;
+   fq("",SHOWN).then(j=>{if(my!==REQ)return;const next=cache(j.items);SHOWN+=j.items.length;TOTAL=j.total;LIST.push(...next);
+     const mm=$("more");if(!mm)return;mm.insertAdjacentHTML("beforebegin",next.map(row).join(""));
+     if(!j.items.length||SHOWN>=TOTAL){mm.remove();IO.disconnect()}else{IO.unobserve(mm);IO.observe(mm)}})     // ещё на экране — грузим дальше
+    .catch(()=>{}).finally(()=>{BUSY=false});return}
+  const next=LIST.slice(SHOWN,SHOWN+PAGE);SHOWN+=next.length;
+  m.insertAdjacentHTML("beforebegin",next.map(row).join(""));if(SHOWN>=LIST.length){m.remove();IO.disconnect()}},{rootMargin:"900px"});IO.observe(m)}
+let OUTS=[],OSHOWN=0,OTOTAL=0;
+function moreOuts(b){const li=b.parentNode,put=next=>{li.insertAdjacentHTML("beforebegin",next.map(row).join(""));
+  if(OSHOWN>=OTOTAL)li.remove();else b.textContent=`Показать ещё (${OTOTAL-OSHOWN})`};
+ if(PAGED){b.disabled=true;fq("outs",OSHOWN).then(j=>{OSHOWN+=j.items.length;OTOTAL=j.items.length?j.total:OSHOWN;put(cache(j.items))})
+   .catch(()=>{}).finally(()=>{b.disabled=false});return}
+ const next=OUTS.slice(OSHOWN,OSHOWN+24);OSHOWN+=next.length;put(next)}
+function paintOuts(first,total){OTOTAL=total;OSHOWN=first.length;$("outs").hidden=!total;$("out_n").textContent=total?`· ${total}`:"";
+ $("out_rows").innerHTML=first.map(row).join("")+(total>OSHOWN?`<li class="more"><button class="btn" onclick="moreOuts(this)">Показать ещё (${total-OSHOWN})</button></li>`:"");
+ const left=unseen().length;$("next_find").disabled=!left;
+ $("next_find").textContent=left?`Следующая находка → (не открыто ${left}${PAGED&&UNSEEN.length>=300?"+":""})`:"Все находки открыты"}
+function paintStats(s){$("stats").innerHTML=`<span>показано <b>${fmt(s.shown)}</b> из ${fmt(s.base)}</span><span>75+ <b>${fmt(s.n75)}</b></span>`+
+  `<span>новых <b>${fmt(s.nnew)}</b></span>`+(s.best>0?`<span class="g">лучшая прибыль <b>+${fmt(s.best)} ₽</b></span>`:"")}
+const EMPTY='<li class="empty">Ничего не подходит под фильтры</li>';
+function render(){INTRO=0;
+ const q=F.q.trim().toLowerCase(),min=num(F.min),minp=num(F.minp),maxp=num(F.maxp),prof=num(F.prof);
+ paintPresets();paintMore();
+ const ob=$("obanner");ob.hidden=!ORDER;
+ if(ORDER){const o=D.orders[ORDER];ob.innerHTML=`<span>Заказ <b>${esc(o.client||"клиент")}</b>: ${esc(o.what)}, платит ${fmt(o.budget)} ₽ — показаны подходящие вещи, прибыль по цене клиента</span><button class="btn ghost sm" onclick="location.hash=''">✕ показать всё</button>`}
+ const bad=D.bad.filter(r=>!q||String(r.title).toLowerCase().includes(q)).slice(0,400);
+ $("rej_rows").innerHTML=bad.map(r=>`<tr><td class="sub">${esc(r.reject)}</td><td>${esc(r.title)}</td><td class="num">¥${fmt(num(r.price_cny))}</td><td>${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">открыть</a>`:""}</td></tr>`).join("");
+ if(PAGED){const my=++REQ;BUSY=false;clearTimeout(RT);     // при наборе в поиске — один запрос, когда остановились
+  RT=setTimeout(()=>fq("",0).then(j=>{if(my!==REQ)return;D.good.length=0;BYID.clear();
+    LIST=cache(j.items);SHOWN=j.items.length;TOTAL=j.total;UNSEEN=(j.unseen||[]).map(x=>({id:x[0],url:x[1]}));
+    OUTS=cache(j.outs||[]);paintOuts(OUTS,j.outs_total||0);
+    paintStats({shown:j.total,base:j.base,n75:j.n75,nnew:j.nnew,best:j.best});
+    $("rows").innerHTML=LIST.length?LIST.map(row).join("")+(TOTAL>SHOWN?MORE:""):EMPTY;watchMore()})
+   .catch(()=>{if(my===REQ)$("rows").innerHTML='<li class="empty">Сервер занят и не ответил. Подождите несколько секунд и нажмите «Обновить».</li>'}),my>1?150:0);
+  return}
+ let list=D.good.filter(r=>{const p=num(r.profit_rub);return (!F.cat||r.category===F.cat)&&(!F.brand||r.brand===F.brand)&&(!F.tier||r.tier===F.tier)
+  &&(min==null||r.total>=min)&&(minp==null||r.price_cny>=minp)&&(maxp==null||r.price_cny<=maxp)
+  &&(prof==null||(p!=null&&p>=prof))&&(!F.pos||(p!=null&&p>0))
+  &&(!F.risk||(F.risk==="low"?r.fake_risk==="низкий":r.fake_risk!=="высокий"))&&(!F.src||r.src===F.src)
+  &&(!F.men||r.gender!=="ж")&&(!F.yhb||String(r.tags).includes("验货宝"))&&(!F.size||num(r.size_bonus)>=5)&&(!F.known||!String(r.category).startsWith("Тип"))
+  &&(!q||String(r.title).toLowerCase().includes(q))&&(!F.fresh||r.status)&&(!F.like||r.mark==="like")&&(!F.deal||num(r.deal_pct))
+  &&(!ORDER||r.id in D.orders[ORDER].ids)}).sort(ORDER?(a,b)=>D.orders[ORDER].ids[b.id]-D.orders[ORDER].ids[a.id]:SORT[F.sort]||SORT.total);
+ const outs=list.filter(r=>r.outside);list=list.filter(r=>!r.outside);
+ OUTS=outs;paintOuts(outs.slice(0,24),outs.length);
+ const profits=list.map(r=>num(r.profit_rub)).filter(v=>v!=null&&v>0);
+ paintStats({shown:list.length,base:D.good.filter(r=>!r.outside).length,n75:list.filter(r=>r.total>=75).length,
+  nnew:list.filter(r=>r.status==="новое").length,best:profits.length?Math.max(...profits):0});
+ LIST=list;SHOWN=Math.min(PAGE,list.length);
+ $("rows").innerHTML=list.length?list.slice(0,SHOWN).map(row).join("")+(list.length>SHOWN?MORE:""):EMPTY;
+ watchMore()}
+$("rej_sum").textContent=`Отсеяно: ${D.bad_total}`;
+$("rej_reasons").innerHTML=D.reasons.map(([k,v])=>`<span class="c">${esc(k)}: ${v}</span>`).join("")
+ +Object.entries(D.pre||{}).map(([k,v])=>`<span class="c bt" title="Фильтр на входе: такие объявления сразу уходят в архив и в пересчёт не попадают. Счёт — за этот запуск">на входе · ${esc(k)}: ${v}</span>`).join("");
+function mark(id,m,reason){fetch("/mark",{method:"POST",headers:{"Content-Type":"application/json","X-Goofish-UI":"1"},body:JSON.stringify({id:id,mark:m,reason:reason||""})})
+ .then(r=>{if(!r.ok)throw 0;if(reason===JUNK){location.reload();return}const i=D.good.findIndex(x=>x.id===id);const el=document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);if(i>=0){if(m==="hide")D.good.splice(i,1);else D.good[i].mark=m}
+  // меняем только эту карточку, без перерисовки всей ленты (и прокрутка не прыгает)
+  const li=LIST.findIndex(x=>x.id===id);
+  if(m==="hide"){if(li>=0){LIST.splice(li,1);SHOWN=Math.max(0,SHOWN-1)}if(el){if(REDUCE)el.remove();else{el.classList.add("leaving");setTimeout(()=>el.remove(),260)}}}
+  else if(el&&i>=0){const nu=document.createElement("div");nu.innerHTML=row(D.good[i]);const card=nu.firstElementChild;el.replaceWith(card);
+   if(m==="like"){const b=card.querySelector(".btn.on");if(b)b.classList.add("pop")}}
+  return fetch("/version").then(r=>r.json()).then(j=>{D.version=j.v})})
+ .catch(()=>{$("note").textContent="Скрипт --listen не отвечает: отметка не сохранена"})}
+if(D.live)setInterval(()=>fetch("/version").then(r=>r.json()).then(j=>{if(j.v!==D.version)$("banner").style.display="block"}).catch(()=>{}),8000);
+// «все в ленте →» у заказа клиента: /#order=ID — только подходящие вещи
+let ORDER=null;
+function readOrder(){const m=location.hash.match(/order=(\w+)/);ORDER=m&&D.orders&&D.orders[m[1]]?m[1]:null}
+readOrder();addEventListener("hashchange",()=>{readOrder();render()});
+// клавиши: J/K — по карточкам, Enter — открыть, L — ★, X — скрыть, B — купил (на русской раскладке те же клавиши)
+let FOC=null;
+function focusCard(d){const cs=[...document.querySelectorAll(".card")];if(!cs.length)return;
+ let i=FOC?cs.findIndex(c=>c.dataset.id===FOC):-1;i=i<0?0:Math.max(0,Math.min(cs.length-1,i+d));
+ document.querySelectorAll(".card.kf").forEach(c=>c.classList.remove("kf"));const c=cs[i];c.classList.add("kf");FOC=c.dataset.id;
+ c.scrollIntoView({block:"center",behavior:REDUCE?"auto":"smooth"})}
+addEventListener("keydown",e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.closest?.("input,textarea,select,#gpop,.gsel"))return;
+ const k=e.key.toLowerCase(),is=(...ks)=>ks.includes(k);
+ if(is("j","о"))focusCard(1);else if(is("k","л"))focusCard(-1);
+ else{const c=FOC&&document.querySelector(`.card[data-id="${CSS.escape(FOC)}"]`);if(!c)return;
+  if(e.key==="Enter")c.querySelector("a.btn.go")?.click();
+  else if(is("l","д")){const r=D.good.find(x=>x.id===FOC);mark(FOC,r&&r.mark==="like"?"":"like")}
+  else if(is("x","ч"))askHide(c);
+  else if(is("b","и"))c.querySelector('button[onclick^="buy"]')?.click();
+  else return}
+ e.preventDefault()});
+if(D.live)$("note").textContent+=" Клавиши: J/K — по карточкам, Enter — открыть, L — ★, X — скрыть, B — купил.";
+// плотная лента (по умолчанию) или подробные карточки; пояснение страницы и клавиши — под «?»
+let DENSE=true;try{DENSE=localStorage.getItem("goofish_dense")!=="0"}catch(e){}
+function paintDense(){document.body.classList.toggle("dense",DENSE);const b=$("dtog");b.textContent=DENSE?"▦ плотно":"▤ подробно";
+ b.title=DENSE?"Сейчас плотная лента: больше вещей на экране, подробности — по «⋯» на карточке. Нажмите — подробные карточки":"Сейчас подробные карточки. Нажмите — плотная лента"}
+(()=>{const mk=(id,txt)=>{const b=document.createElement("button");b.type="button";b.id=id;b.className=$("ftog").className;b.textContent=txt;$("ftog").before(b);return b};
+ mk("dtog","").onclick=()=>{DENSE=!DENSE;try{localStorage.setItem("goofish_dense",DENSE?"1":"0")}catch(e){}paintDense()};
+ const q=mk("nq","?");q.title="Что это за страница и какие клавиши работают";$("note").hidden=true;q.onclick=()=>{$("note").hidden=!$("note").hidden}})();
+paintDense();
+render();setTimeout(()=>$("rows").classList.remove("intro"),1500);
+</script></body></html>

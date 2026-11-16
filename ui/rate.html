@@ -1,0 +1,45 @@
+<!doctype html><meta charset="utf-8"><title>Быстрая разметка</title>__CSS__
+<style>
+main{max-width:760px}.rc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.rc img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;background:var(--soft)}
+.rc h2{margin:0 0 4px;font-size:20px}.rc .p{font-size:26px;font-weight:700;margin:8px 0 2px}.rc .t{color:var(--muted);font-size:13px;line-height:1.45}
+.ch{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.ch span{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--soft)}
+.ch .r{background:color-mix(in srgb,var(--bad) 18%,transparent)}
+.k{display:grid;gap:8px;margin-top:14px}.k button{font:inherit;font-size:14px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);
+ background:var(--card);color:var(--fg);cursor:pointer;text-align:left}.k button:hover{border-color:var(--accent)}
+.k .like{background:#e2bd55;border-color:#e2bd55;color:#222;font-weight:700}.k kbd{float:right;opacity:.6;font-size:12px}
+.why{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+@media (max-width:640px){.rc{grid-template-columns:1fr}}
+</style>
+<main><div class="bar"><h1 style="margin:0">Быстрая разметка</h1><a href="/learn">← Обучение</a></div>
+<p class="note" id="st"></p><div id="c"></div></main>
+<script>
+const Q=__ITEMS__,WHY=__WHY__,done=[];let i=0;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=v=>Math.round(+v||0).toLocaleString("ru-RU");
+function post(id,mark,reason){return fetch("/mark",{method:"POST",headers:{"Content-Type":"application/json","X-Goofish-UI":"1"},
+ body:JSON.stringify({id,mark,reason:reason||""})}).then(r=>{if(!r.ok)throw 0})}
+function draw(){
+ document.getElementById("st").textContent=`Отмечено ${done.filter(d=>d.mark).length} · осталось ${Math.max(Q.length-i,0)} из ${Q.length}. Клавиши: L — ★, 1–${WHY.length} — скрыть с причиной, H — скрыть без причины, пробел — пропустить, Z — отменить, O — открыть на Goofish.`;
+ const r=Q[i],c=document.getElementById("c");
+ if(!r){c.innerHTML='<p>Готово. <a href="/rate">Ещё порция</a> · <a href="/learn">к подсказкам</a></p>';return}
+ const img=String(r.image).startsWith("//")?"https:"+r.image:r.image,p=+r.profit_rub;
+ const chips=[r.size&&["размер "+r.size,""],r.condition&&[r.condition,""],r.tier==="B"&&["B: дёшево, проверить",""],
+  r.fake_risk&&r.fake_risk!=="низкий"&&["риск подделки: "+r.fake_risk,"r"]].filter(Boolean);
+ c.innerHTML=`<div class="rc"><a href="${esc(r.url)}" target="_blank"><img src="${esc(img)}" referrerpolicy="no-referrer" alt=""></a><div>
+  <h2>${esc(r.brand)} · ${esc(r.model||r.category)}</h2><div class="t">${esc(r.variant)}</div>
+  <div class="p">¥${fmt(r.price_cny)}</div><div class="t">${r.profit_rub===""?"нет цены продажи":(p>0?"+":"")+fmt(p)+" ₽ прибыли"} · оценка ${esc(r.total)}</div>
+  <div class="ch">${chips.map(([t,c])=>`<span class="${c}">${esc(t)}</span>`).join("")}</div>
+  <p class="t">${esc(r.title)}</p>
+  <div class="k"><button class="like" onclick="act('like')">★ Интересно<kbd>L</kbd></button>
+   <div class="why">${WHY.map((w,j)=>`<button onclick="act('hide','${w}')">✕ ${w}<kbd>${j+1}</kbd></button>`).join("")}<button onclick="act('hide')">✕ без причины<kbd>H</kbd></button></div>
+   <button onclick="act('')">Пропустить<kbd>пробел</kbd></button></div></div></div>`}
+function act(mark,reason){const r=Q[i];if(!r)return;i++;done.push({id:r.id,mark});draw();
+ if(mark)post(r.id,mark,reason).catch(()=>{document.getElementById("st").textContent="Приложение не отвечает — отметка не сохранилась";i--;done.pop();draw()})}
+function undo(){const d=done.pop();if(!d)return;i--;draw();if(d.mark)post(d.id,"")}
+addEventListener("keydown",e=>{if(e.ctrlKey||e.altKey||e.metaKey)return;const k=e.key.toLowerCase();
+ if(k==="l"||k==="д")act("like");else if(k==="h"||k==="р")act("hide");else if(k===" "){e.preventDefault();act("")}
+ else if(k==="z"||k==="я"||k==="backspace")undo();else if((k==="o"||k==="щ")&&Q[i])open(Q[i].url,"_blank");
+ else if(/^[1-9]$/.test(k)&&WHY[+k-1])act("hide",WHY[+k-1])});
+draw();
+</script>

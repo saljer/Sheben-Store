@@ -1,0 +1,19 @@
+{
+ "_help": "Как китайские продавцы на 闲鱼 пишут бренд. Значение — иероглифы; пустая строка — пишут латиницей. Бренды, которых здесь нет, Щебень сам спрашивает у Gemini (раз на бренд) и дописывает сюда с пометкой в «_gemini». Китайские названия из каталога (слова бренда) берутся и без этого файла.",
+ "brands": {
+  "Diesel": "迪赛",
+  "Dolce & Gabbana (архив)": "杜嘉班纳",
+  "Off-White": "",
+  "Enfants Riches Déprimés": "",
+  "Mastermind Japan": "",
+  "Kapital": "",
+  "Visvim": "",
+  "Sacai": "",
+  "Craig Green": "",
+  "Kiko Kostadinov": "",
+  "Hysteric Glamour": ""
+ },
+ "_gemini": [
+  "Hysteric Glamour"
+ ]
+}

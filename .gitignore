@@ -1,0 +1,39 @@
+# Сессия аккаунта Goofish и данные встроенного браузера — никогда в репозиторий
+profile/
+app_data/
+
+# Ключ Gemini, токен бота, ключ доступа с телефона
+settings.json
+
+# База объявлений, отчёты, журналы, образцы ответов сайта
+out/
+*.db
+*.db-journal
+tests/base.db
+
+# Заказы клиентов (имена) и выгрузки
+orders.json
+tg_export/
+paste*.txt
+*.zip
+
+# Автоматические копии каталога (save_catalog хранит последние) и старые версии кода
+*.backup-*.json
+old/
+
+# Посторонние папки
+spotify_eq/
+market-app/
+
+__pycache__/
+*.pyc
+
+# Ежедневные копии базы (backup_bg)
+backup/
+reports/
+picks.json
+
+# Секреты (ключи, токены) и личные настройки
+.env
+config.json
+logs/

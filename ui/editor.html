@@ -1,0 +1,241 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Каталог</title>__CSS__
+<style>
+.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .in{max-width:1100px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.top h1{margin-right:auto}
+#msg{font-size:13px;color:var(--muted)}#msg.ok{color:var(--good)}#msg.err{color:var(--bad)}
+.btn{font:inherit;font-size:13px;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.btn.go{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:600}
+.btn:disabled{opacity:.45;cursor:default}.btn.sm{padding:3px 9px;font-size:12px}.btn.del{color:var(--bad)}
+.errs{background:color-mix(in srgb,var(--bad) 10%,var(--card));border:1px solid var(--bad);border-radius:10px;padding:10px 14px;font-size:13px}
+.errs li{margin:2px 0}
+.lay{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:start}
+nav{display:grid;gap:2px;position:sticky;top:70px}
+nav button{all:unset;cursor:pointer;padding:6px 10px;border-radius:8px;font-size:13.5px}
+nav button:hover{background:var(--soft)}nav button.on{background:var(--accent);color:var(--card);font-weight:600}
+nav .h{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:10px 10px 2px}
+.ed{display:grid;gap:16px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+label.f{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+input[type=text],input[type=number],select,textarea{font:inherit;font-size:13px;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:6px 8px;width:100%;min-width:0}
+textarea{min-height:60px;resize:vertical}
+td input[type=number]{width:84px}td input.w{min-width:220px}td input.nm{min-width:150px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.stale{color:var(--bad);font-size:12px}.fresh{color:var(--muted);font-size:12px}
+@media (max-width:760px){.lay{grid-template-columns:1fr}nav{position:static;display:flex;flex-wrap:wrap}nav .h{width:100%}}
+</style></head><body>
+<div class="top"><div class="in"><h1 id="ttl"></h1><span id="msg"></span>
+<button class="btn" id="undo" disabled>Отменить изменения</button><button class="btn go" id="save" disabled>Сохранить</button></div></div>
+<main><div id="errs"></div><div id="app">Загрузка…</div></main>
+<script>
+const MODE="__MODE__";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const w2s=a=>(a||[]).join(", ");
+const s2w=s=>String(s).split(/[,，]/).map(x=>x.trim()).filter(Boolean);
+const today=new Date().toISOString().slice(0,10);
+let C=null,ORIG="",SEL=null,ARM=null;
+function dirty(){const d=JSON.stringify(C)!==ORIG;$("save").disabled=!d;$("undo").disabled=!d;if(d)msg("Есть несохранённые изменения","")}
+function msg(t,cls){$("msg").textContent=t;$("msg").className=cls||""}
+function get(path){return path.split(".").reduce((o,k)=>o==null?o:o[k],C)}
+function set(path,val){const ks=path.split(".");let o=C;for(const k of ks.slice(0,-1)){if(o[k]==null)o[k]={};o=o[k]}
+ const last=ks[ks.length-1];if(val===undefined)delete o[last];else o[last]=val}
+function mw2s(m){return m.all?m.all.map(w2s).join(" + "):w2s(m.words)}
+// поля: data-p = путь в каталоге, data-k = как читать значение
+function inp(p,k,extra=""){const v=get(p);
+ if(k==="bool")return `<input type="checkbox" data-p="${p}" data-k="bool" ${v?"checked":""} ${extra}>`;
+ if(k==="num"||k==="numopt")return `<input type="number" data-p="${p}" data-k="${k}" value="${v==null?"":esc(v)}" ${extra}>`;
+ if(k==="words"||k==="wordsopt")return `<input type="text" class="w" data-p="${p}" data-k="${k}" value="${esc(w2s(v))}" ${extra}>`;
+ return `<input type="text" data-p="${p}" data-k="text" value="${esc(v)}" ${extra}>`}
+document.addEventListener("input",e=>{const t=e.target,p=t.dataset.p,k=t.dataset.k;if(!p)return;
+ if(k==="bool")set(p,t.checked?true:undefined);
+ else if(k==="num")set(p,t.value===""?0:Number(t.value));
+ else if(k==="numopt")set(p,t.value===""?undefined:Number(t.value));
+ else if(k==="words")set(p,s2w(t.value));
+ else if(k==="wordsopt"){const w=s2w(t.value);set(p,w.length?w:undefined)}
+ else if(k==="mwords"){const m=get(p),g=t.value.split("+").map(s2w).filter(x=>x.length);
+  if(g.length>1){m.all=g;delete m.words}else{m.words=g[0]||[];delete m.all}}
+ else if(k==="cat"){set(p,t.value||undefined)}
+ else if(k==="amb"){const b=C.brands[t.dataset.b],a=new Set(b.ambassador||[]);t.checked?a.add(t.dataset.c):a.delete(t.dataset.c);b.ambassador=[...a]}
+ else if(k==="enabled"){set(p,t.checked?undefined:false)}
+ else if(k==="reject"){const m=get(p);if(t.value==="reject"){m.reject=true}else{delete m.reject}render()}
+ else if(k==="price"){set(p+".sell_rub",t.value===""?undefined:Number(t.value));set(p+".sell_date",t.value===""?undefined:today);
+  const d=t.closest("tr").querySelector(".dt");if(d){d.textContent=t.value?"сегодня":"";d.className="dt fresh"}}
+ else if(k==="bprice"){const b=get(p),c=t.dataset.c;b.sell_rub=b.sell_rub||{};b.sell_dates=b.sell_dates||{};
+  if(t.value===""){delete b.sell_rub[c];delete b.sell_dates[c]}else{b.sell_rub[c]=Number(t.value);b.sell_dates[c]=today}
+  if(!Object.keys(b.sell_rub).length)delete b.sell_rub;if(!Object.keys(b.sell_dates).length)delete b.sell_dates;
+  const d=t.closest("tr").querySelector(".dt");if(d){d.innerHTML=t.value?'<span class="fresh">сегодня</span>':""}}
+ else set(p,t.value);
+ if(t.dataset.k==="text"&&p.endsWith(".name"))renderNav();
+ dirty()});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act,p=b.dataset.p;
+ if(a==="sel"){SEL=b.dataset.s;render();window.scrollTo(0,0);return}
+ if(a==="add"){const arr=get(p)||[];arr.push(JSON.parse(b.dataset.tpl));set(p,arr)}
+ if(a==="rm"){const ks=p.split("."),i=+ks.pop();get(ks.join(".")).splice(i,1)}
+ if(a==="addbrand"){let base=("brand").toLowerCase(),k=base,n=1;while(C.brands[k])k=base+(++n);
+  C.brands[k]={name:"Новый бренд",aliases:[],desire:70,liquidity:70,ambassador:[],min_price:{"*":500},models:[],variants:[]};SEL="b:"+k}
+ if(a==="delbrand"){if(ARM!==p){ARM=p;b.textContent="Точно удалить? Нажмите ещё раз";return}delete C.brands[p.slice(2)];SEL="cats";ARM=null}
+ render();dirty()});
+const catKeys=()=>Object.keys(C.categories);
+const catSel=(p,v)=>`<select data-p="${p}" data-k="cat"><option value="">любая</option>${catKeys().map(k=>`<option value="${k}" ${v===k?"selected":""}>${esc(C.categories[k].name)}</option>`).join("")}</select>`;
+const addBtn=(p,tpl,t)=>`<button class="btn sm" data-act="add" data-p="${p}" data-tpl='${esc(JSON.stringify(tpl))}'>+ ${t}</button>`;
+const rmBtn=p=>`<button class="btn sm del" data-act="rm" data-p="${p}" title="Удалить">✕</button>`;
+function renderNav(){if(MODE!=="catalog")return;const b=Object.entries(C.brands).sort((x,y)=>x[1].name.localeCompare(y[1].name));
+ const it=(s,t)=>`<button data-act="sel" data-s="${s}" class="${SEL===s?"on":""}">${esc(t)}</button>`;
+ $("nav").innerHTML=`<div class="h">Бренды</div>${b.map(([k,v])=>it("b:"+k,v.name||k)).join("")}
+ <button data-act="addbrand" style="color:var(--accent)">+ Бренд</button>
+ <div class="h">Общее</div>${it("cats","Категории")}${it("rules","Общие правила")}${it("rarity","Редкость")}${it("other","Чужие бренды")}${C.outside?it("outside","Вне каталога"):""}`}
+function brandEd(k){const b=C.brands[k],P="brands."+k;
+ const rows=catKeys().map(c=>`<tr><td>${esc(C.categories[c].name)}</td><td>${inp(`${P}.min_price.${c}`,"numopt",'placeholder="как у «прочих»"')}</td>
+  <td>${inp(`${P}.category_desire.${c}`,"numopt",'placeholder="0"')}</td>
+  <td><input type="checkbox" data-k="amb" data-b="${k}" data-c="${c}" ${(b.ambassador||[]).includes(c)?"checked":""}></td></tr>`).join("");
+ const models=(b.models||[]).map((m,i)=>`<tr><td>${inp(`${P}.models.${i}.name`,"text",'class="nm"')}</td><td>${catSel(`${P}.models.${i}.category`,m.category)}</td>
+  <td><input type="text" class="w" data-p="${P}.models.${i}" data-k="mwords" value="${esc(mw2s(m))}"></td>
+  <td>${inp(`${P}.models.${i}.desire`,"numopt")}</td><td>${inp(`${P}.models.${i}.liquidity`,"numopt")}</td><td>${inp(`${P}.models.${i}.sell_rub`,"numopt",'placeholder="нет"')}</td><td>${inp(`${P}.models.${i}.min_price`,"numopt",'placeholder="бренд"')}</td><td>${rmBtn(`${P}.models.${i}`)}</td></tr>`).join("");
+ const vars=(b.variants||[]).map((v,i)=>`<tr><td>${inp(`${P}.variants.${i}.name`,"text",'class="nm"')}</td><td>${inp(`${P}.variants.${i}.words`,"words")}</td>
+  <td>${inp(`${P}.variants.${i}.desire`,"num")}</td><td>${inp(`${P}.variants.${i}.grail`,"bool")}</td><td>${catSel(`${P}.variants.${i}.category`,v.category)}</td><td>${rmBtn(`${P}.variants.${i}`)}</td></tr>`).join("");
+ return `<section class="box" style="padding:14px"><div class="grid2">
+  <label class="f">Название${inp(P+".name","text")}</label>
+  <label class="f">Как пишут в объявлениях (через запятую)${inp(P+".aliases","words")}</label>
+  <label class="f">Желанность 0–100${inp(P+".desire","num")}</label><label class="f">Ликвидность 0–100${inp(P+".liquidity","num")}</label>
+  <label class="f" title="С Goofish — только вещи с 验货宝 (проверка подлинности площадкой): для брендов, где почти всё подделки. Mercari не касается">Только с 验货宝${inp(P+".need_check","bool")}</label>
+  <label class="f">Слова-подделки (p家, 普拉达家…)${inp(P+".fakes","wordsopt")}</label></div></section>
+ <section><h2>По категориям</h2><p class="hint">Мин. цена: дешевле этого вещь бренда считается подозрительной. Бонус прибавляется к желанности. Амбассадор: +8 к ликвидности.</p>
+  <div class="box"><table><tr><th>Категория</th><th>Мин. цена ¥</th><th>Бонус желанности</th><th>Амбассадор</th></tr>${rows}
+  <tr><td>Прочие категории</td><td>${inp(P+".min_price.*","numopt")}</td><td></td><td></td></tr></table></div></section>
+ <section><h2>Модели</h2><p class="hint">Слова через запятую — достаточно любого. Знак «+» — нужны слова из обеих групп: <code>尼龙, nylon + 邮差, 斜挎</code>. Пустая жел./ликв. — берутся от бренда.</p>
+  <div class="box"><table><tr><th>Модель</th><th>Категория</th><th>Слова</th><th>Жел.</th><th>Ликв.</th><th>Цена ₽</th><th title="Дешевле — подозрительно (как мин. цена бренда, но только для этой модели)">Мин. ¥</th><th></th></tr>${models}</table></div>
+  ${addBtn(P+".models",{name:"Новая модель",words:[]},"Модель")}</section>
+ <section><h2>Вариации</h2><p class="hint">Прибавляют желанность, если в объявлении есть слово: архив, цвет, линия. «Грааль» отмечает вещь звёздочкой.</p>
+  <div class="box"><table><tr><th>Вариация</th><th>Слова</th><th>Жел. ±</th><th>Грааль</th><th>Категория</th><th></th></tr>${vars}</table></div>
+  ${addBtn(P+".variants",{name:"Новая вариация",desire:0,words:[]},"Вариация")}</section>
+ <section><button class="btn del" data-act="delbrand" data-p="b:${k}">Удалить бренд</button></section>`}
+function catsEd(){return catKeys().map(c=>{const P="categories."+c,ct=C.categories[c];
+ const sub=(ct.subtypes||[]).map((s,i)=>`<tr><td>${inp(`${P}.subtypes.${i}.name`,"text",'class="nm"')}</td><td>${inp(`${P}.subtypes.${i}.words`,"words")}</td><td>${inp(`${P}.subtypes.${i}.desire`,"num")}</td><td>${rmBtn(`${P}.subtypes.${i}`)}</td></tr>`).join("");
+ return `<section class="box" style="padding:14px;display:grid;gap:10px"><div class="grid2">
+  <label class="f">Название${inp(P+".name","text")}</label>
+  <label class="f">Ищем<input type="checkbox" data-p="${P}.enabled" data-k="enabled" ${ct.enabled===false?"":"checked"}></label>
+  <label class="f">Мин. цена ¥${inp(P+".min_price","numopt")}</label><label class="f">Абсолютный минимум ¥${inp(P+".low_floor","numopt")}</label></div>
+  <label class="f">Слова категории${inp(P+".words","words")}</label>
+  <label class="f">Слова-исключения (防尘袋, 包邮…)${inp(P+".exclude","wordsopt")}</label>
+  ${ct.enabled===false?"":`<div class="box"><table><tr><th>Подтип</th><th>Слова</th><th>Жел. ±</th><th></th></tr>${sub}</table></div>${addBtn(P+".subtypes",{name:"Новый подтип",desire:0,words:[]},"Подтип")}`}
+ </section>`}).join("")}
+function rulesEd(){const r=(C.modifiers||[]).map((m,i)=>{const P="modifiers."+i;return `<tr><td>${inp(P+".name","text",'class="nm"')}</td>
+  <td><select data-p="${P}" data-k="reject"><option value="w" ${m.reject?"":"selected"}>менять оценку</option><option value="reject" ${m.reject?"selected":""}>отсеивать</option></select></td>
+  <td>${m.reject?"":inp(P+".desire","numopt")}</td><td>${m.reject?"":inp(P+".penalty","numopt")}</td>
+  <td>${inp(P+".words","words")}</td><td>${inp(P+".unless","wordsopt",'placeholder="男女, unisex…"')}</td><td>${rmBtn(P)}</td></tr>`}).join("");
+ return `<p class="hint">Действуют на все бренды. Желанность прибавляется к оценке вкуса, штраф снимается с итогового балла. «Кроме» — правило не срабатывает, если есть такие слова.</p>
+ <div class="box"><table><tr><th>Правило</th><th>Действие</th><th>Жел. ±</th><th>Штраф</th><th>Слова</th><th>Кроме</th><th></th></tr>${r}</table></div>
+ ${addBtn("modifiers",{name:"Новое правило",desire:0,words:[]},"Правило")}`}
+function rarityEd(){const r=(C.rarity||[]).map((m,i)=>`<tr><td>${inp(`rarity.${i}.name`,"text",'class="nm"')}</td><td>${inp(`rarity.${i}.desire`,"num")}</td><td>${inp(`rarity.${i}.words`,"words")}</td><td>${rmBtn("rarity."+i)}</td></tr>`).join("");
+ return `<label class="f" style="max-width:240px">Потолок бонуса за редкость${inp("rarity_cap","num")}</label>
+ <div class="box"><table><tr><th>Признак</th><th>Жел. +</th><th>Слова</th><th></th></tr>${r}</table></div>${addBtn("rarity",{name:"Новый признак",desire:3,words:[]},"Признак")}`}
+function otherEd(){return `<p class="hint">Объявления с этими брендами отсеиваются как «чужой бренд» (например, когда в названии prada и gucci сразу).</p>
+ <textarea data-p="other_brands" data-k="words" rows="8">${esc(w2s(C.other_brands))}</textarea>`}
+function outsideEd(){const r=(C.outside.interesting||[]).map((b,i)=>{const P="outside.interesting."+i;return `<tr><td>${inp(P+".name","text",'class="nm"')}</td>
+  <td>${inp(P+".words","words")}</td><td>${inp(P+".desire","num")}</td><td>${inp(P+".need","wordsopt",'placeholder="любые"')}</td><td title="С Goofish — только вещи с 验货宝 (проверка подлинности); Mercari не касается">${inp(P+".need_check","bool")}</td><td>${rmBtn(P)}</td></tr>`}).join("");
+ return `<p class="hint">Бренды не из каталога. «Интересные» показываются в ленте блоком «Вне каталога»; «шлак» отсеивается молча. «Нужно» — вещь показывается, только если есть одно из этих слов (например, только винтаж).</p>
+ <div class="grid2"><label class="f">Мин. цена ¥ для интересных брендов${inp("outside.min_price","num")}</label><label class="f">Мин. цена ¥ для вещей без бренда${inp("outside.unknown_min_price","num")}</label></div>
+ <section><h2>Интересные</h2><div class="box"><table><tr><th>Бренд</th><th>Слова</th><th>Жел.</th><th>Нужно</th><th>Только 验货宝</th><th></th></tr>${r}</table></div>
+ ${addBtn("outside.interesting",{name:"Новый бренд",words:[],desire:55},"Бренд")}</section>
+ <section><h2>Шлак</h2><p class="hint">Через запятую. Сюда же попадают бренды, которые вы скрыли с причиной «бренд — шлак».</p>
+ <textarea data-p="outside.junk" data-k="words" rows="6">${esc(w2s(C.outside.junk))}</textarea></section>
+ <section><h2>Фильтр на входе</h2><p class="hint">Новое объявление с таким словом в названии или описании сразу уходит в архив: в ленту и в пересчёт не попадает.
+ Встроенный список слов реплик (高仿, 复刻, 原单, 莆田…) работает всегда — сюда добавляйте свои. Через запятую.</p>
+ <textarea data-p="outside.stop" data-k="words" rows="3" placeholder="свои стоп-слова">${esc(w2s(C.outside.stop))}</textarea>
+ <p class="hint">Ещё на входе отсеиваются «только коробка» (空盒, 空箱, 箱のみ, box only…) и цена ниже 15% обычной для бренда и типа вещи
+ (кроме украшений и аксессуаров: у них разброс цен слишком большой).</p></section>`}
+let SUG=[],HIDE=new Set();try{HIDE=new Set(JSON.parse(localStorage.getItem("goofish_price_hide")||"[]"))}catch(e){}
+const ageOf=d=>d?Math.floor((Date.parse(today)-Date.parse(d))/864e5):null;
+const stamp=(v,d)=>{if(v==null)return"";const a=ageOf(d);return a==null?'<span class="stale">дата неизвестна</span>':a>14?`<span class="stale">${a} дн. назад</span>`:`<span class="fresh">${a?a+" дн. назад":"сегодня"}</span>`};
+const sugKey=s=>s.model?`m:${s.brand}:${s.model}`:`b:${s.brand}:${s.category}`;
+function sugCur(s){const b=C.brands[s.brand];if(!b)return undefined;if(s.model){const m=(b.models||[]).find(m=>m.name===s.model);return m?m.sell_rub:undefined}return (b.sell_rub||{})[s.category]}
+function sugApply(i){const s=SUG[i],b=C.brands[s.brand];if(s.model){const m=b.models.find(m=>m.name===s.model);m.sell_rub=s.value;m.sell_date=today}
+ else{b.sell_rub=b.sell_rub||{};b.sell_rub[s.category]=s.value;b.sell_dates=b.sell_dates||{};b.sell_dates[s.category]=today}render();dirty()}
+function sugHide(i){HIDE.add(sugKey(SUG[i]));try{localStorage.setItem("goofish_price_hide",JSON.stringify([...HIDE]))}catch(e){}render()}
+function pricesEd(){const rows=[];for(const[k,b]of Object.entries(C.brands))(b.models||[]).forEach((m,i)=>rows.push({k,i,b,m}));
+ const rank=r=>r.m.sell_rub==null?0:(ageOf(r.m.sell_date)==null||ageOf(r.m.sell_date)>14)?1:2;
+ rows.sort((x,y)=>rank(x)-rank(y)||x.b.name.localeCompare(y.b.name));
+ const none=rows.filter(r=>rank(r)===0).length,old=rows.filter(r=>rank(r)===1).length;
+ const tr=rows.map(({k,i,b,m})=>`<tr><td>${esc(b.name)}</td><td>${esc(m.name)}</td><td>${esc(m.category?C.categories[m.category]?.name:"")}</td>
+  <td><input type="number" data-p="brands.${k}.models.${i}" data-k="price" value="${m.sell_rub??""}" placeholder="нет цены" style="width:110px"></td><td class="dt">${stamp(m.sell_rub,m.sell_date)}</td></tr>`).join("");
+ const brows=[];for(const[k,b]of Object.entries(C.brands)){const cs=new Set([...(b.ambassador||[]),...(b.models||[]).map(m=>m.category).filter(Boolean),...Object.keys(b.sell_rub||{})]);
+  for(const c of cs)if(C.categories[c]&&C.categories[c].enabled!==false)brows.push({k,b,c})}
+ brows.sort((x,y)=>x.b.name.localeCompare(y.b.name));
+ const btr=brows.map(({k,b,c})=>{const v=(b.sell_rub||{})[c];return `<tr><td>${esc(b.name)}</td><td>${esc(C.categories[c].name)}</td>
+  <td><input type="number" data-p="brands.${k}" data-c="${c}" data-k="bprice" value="${v??""}" placeholder="нет цены" style="width:110px"></td><td class="dt">${stamp(v,(b.sell_dates||{})[c])}</td></tr>`}).join("");
+ const sugs=SUG.map((s,i)=>({s,i})).filter(({s})=>!HIDE.has(sugKey(s))&&sugCur(s)!==s.value&&C.brands[s.brand]);
+ const fmtR=v=>v==null?"нет":Number(v).toLocaleString("ru-RU")+" ₽";
+ const scards=sugs.map(({s,i})=>`<div class="box" style="padding:12px 14px;display:grid;gap:6px">
+  <div><b>${esc(C.brands[s.brand].name)} · ${esc(s.model||C.categories[s.category]?.name||s.category)}</b>: ${fmtR(sugCur(s))} → <b>${fmtR(s.value)}</b></div>
+  <div class="hint">${esc(s.why)}${(s.sources||[]).filter(u=>u.startsWith("http")).map((u,j)=>` <a href="${esc(u)}" target="_blank">[${j+1}]</a>`).join("")}</div>
+  <div style="display:flex;gap:8px"><button class="btn go sm" onclick="sugApply(${i})">Принять</button><button class="btn sm" onclick="sugHide(${i})">Скрыть</button></div></div>`).join("");
+ return `<p class="hint">Цена, за которую вещь реально уходит в РФ (свой канал / Авито). Без неё прибыль не считается. При изменении ставится сегодняшняя дата; старше 14 дней — пора обновить.</p>
+ ${mktBlock()}
+ ${scards?`<section><h2>Предложения</h2><p class="hint">Основа — ваши сделки; цены площадок — только верхняя граница. «Принять» вписывает цену в таблицу, в каталог она попадёт после «Сохранить».</p><div style="display:grid;gap:10px">${scards}</div></section>`:""}
+ <div class="grid2"><div style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px"><b style="font-size:20px">${none}</b> <span class="hint">моделей без цены</span></div>
+ <div style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px"><b style="font-size:20px">${old}</b> <span class="hint">устарели или без даты</span></div></div>
+ <section><h2>Модели</h2><div class="box"><table><tr><th>Бренд</th><th>Модель</th><th>Категория</th><th>Цена ₽</th><th>Обновлено</th></tr>${tr}</table></div></section>
+ <section><h2>По умолчанию для бренда</h2><p class="hint">Для вещей, у которых модель не распознана. Цена модели всегда важнее.</p>
+ <div class="box"><table><tr><th>Бренд</th><th>Категория</th><th>Цена ₽</th><th>Обновлено</th></tr>${btr}</table></div></section>
+ ${gmBlock()}
+ <p class="hint">Новые модели и бренды добавляются во вкладке «Каталог».</p>`}
+function render(){if(MODE==="prices"){$("app").innerHTML=pricesEd();return}
+ if(!SEL)SEL="b:"+Object.keys(C.brands)[0];
+ if(SEL.startsWith("b:")&&!C.brands[SEL.slice(2)])SEL="cats";
+ const title=SEL.startsWith("b:")?C.brands[SEL.slice(2)].name:{cats:"Категории",rules:"Общие правила",rarity:"Редкость",other:"Чужие бренды",outside:"Вне каталога"}[SEL];
+ const body=SEL.startsWith("b:")?brandEd(SEL.slice(2)):{cats:catsEd,rules:rulesEd,rarity:rarityEd,other:otherEd,outside:outsideEd}[SEL]();
+ $("app").innerHTML=`<div class="lay"><nav id="nav"></nav><div class="ed"><h2 style="font-size:18px">${esc(title)}</h2>${body}</div></div>`;renderNav()}
+function load(){return Promise.all([fetch("/catalog.json").then(r=>r.json()),
+  MODE==="prices"?fetch("/price_suggestions.json").then(r=>r.json()).catch(()=>({items:[]})):{items:[]},
+  MODE==="prices"?fetch("/market/config").then(r=>r.json()).catch(()=>null):null,
+  MODE==="prices"?fetch("/goofish_market.json").then(r=>r.json()).catch(()=>null):null])
+ .then(([j,s,m,g])=>{C=j;SUG=s.items||[];MKT=m;GM=g;ORIG=JSON.stringify(C);render();dirty();msg("","")})}
+let MKT=null,GM=null;
+function gmBlock(){if(!GM||!(GM.items||[]).length)return"";const f=v=>Number(v).toLocaleString("ru-RU");
+ const tr=GM.items.slice(0,80).map(x=>{const ch=x.now&&x.old?Math.round(100*(x.now/x.old-1)):null;
+  return `<tr><td>${esc(x.brand)}</td><td>${esc(x.what)}</td><td class="n">${x.n}</td><td class="n">${x.med?"¥"+f(x.med):"—"}</td>
+  <td class="n" title="${x.dem_n?"по "+x.dem_n+" объявлениям с датой":"мало объявлений с известной датой"}">${x.dem!==""&&x.dem!=null?x.dem+"/день":"—"}</td>
+  <td class="n">${x.old?"¥"+f(x.old):"—"}</td><td class="n">${ch==null?"—":(ch>0?"+":"")+ch+"%"}</td></tr>`}).join("");
+ return `<section><h2>Рынок Goofish</h2><p class="hint">По вещам из ленты (без подделок и шлака), модели с 3+ объявлениями. «Спрос» — медиана «хотят» в день с публикации, появляется при ${GM.dem_min}+ объявлениях с известной датой. «2 нед. назад» — медиана цен вещей, найденных 7–21 день назад: история копится с ${esc(GM.since)}.</p>
+ <div class="box"><table><tr><th>Бренд</th><th>Модель / тип</th><th>Объявл.</th><th>Медиана</th><th>Спрос</th><th>2 нед. назад</th><th>Изм.</th></tr>${tr}</table></div></section>`}
+function mktSave(run){const b={channels:$("mk_ch").value,factor:+$("mk_f").value/100,every_days:+$("mk_d").value,run:!!run};
+ fetch("/market/config",{method:"POST",headers:{"Content-Type":"application/json","X-Goofish-UI":"1"},body:JSON.stringify(b)})
+ .then(r=>r.json()).then(c=>{MKT={...MKT,...c};$("mk_msg").textContent=run?"Сбор начнётся в течение нескольких секунд — ход виден на «Статусе». Предложения появятся здесь после обновления страницы.":"Сохранено."})
+ .catch(e=>$("mk_msg").textContent="Ошибка: "+e)}
+function mktBlock(){if(!MKT)return"";const st=MKT.stats||{},src=Object.entries(st.by_source||{}).map(([k,v])=>`${esc(k)}: ${v}`).join(" · ");
+ return `<section><h2>Рынок РФ</h2><p class="hint">Приложение раз в ${MKT.every_days} дн. читает публичные веб-версии каналов (t.me/s/…) и страницы Oskelly / Second Friend, которые вы открыли сами.
+ Из постов с одной ценой и брендом из каталога считается медиана; это цена «просят», поэтому в предложение идёт медиана × поправку. Ничего не применяется само.</p>
+ <div class="box" style="padding:12px 14px;display:grid;gap:10px">
+ <label class="hint">Каналы (через запятую или с новой строки)<textarea id="mk_ch" rows="3">${esc((MKT.channels||[]).join(", "))}</textarea></label>
+ <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center"><label class="hint">поправка «просят → продают», % <input id="mk_f" type="number" min="50" max="100" value="${Math.round(MKT.factor*100)}" style="width:70px"></label>
+ <label class="hint">собирать раз в, дн. <input id="mk_d" type="number" min="1" max="60" value="${MKT.every_days}" style="width:60px"></label>
+ <button class="btn sm" onclick="mktSave(0)">Сохранить</button><button class="btn go sm" onclick="mktSave(1)">Обновить рынок сейчас</button></div>
+ <p class="hint" id="mk_msg" style="margin:0">Постов в базе: ${st.posts||0}, из них с брендом и ценой: ${st.parsed||0}${src?" · "+src:""}.
+ Последний сбор: ${MKT.last_run?esc(MKT.last_run.replace("T"," ").slice(0,16)):"не было"}${MKT.running?" · идёт сбор":""}.</p></div>
+ <h3 style="margin:16px 0 6px">Импорт из Telegram Desktop</h3>
+ <p class="hint">Если t.me не открывается: в Telegram Desktop откройте канал → ⋮ → «Экспорт истории чата», снимите галочки с фото и видео,
+ формат HTML или JSON → «Экспортировать». Приложение само забирает экспорты раз в минуту из папок:
+ ${(MKT.import_dirs||[]).map(d=>`<code>${esc(d)}</code>`).join(" и ")}. Берутся посты за 6 мес.; повторный экспорт того же канала дублей не даёт.</p>
+ <div class="box" style="padding:12px 14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+ <span class="hint" id="mk_imp" style="flex:1">${mktImpText(MKT)}</span>
+ <button class="btn sm" onclick="mktImport()">Проверить сейчас</button></div></section>`}
+function mktImpText(m){return m.import_last?`Последний импорт: ${esc(m.import_last.replace("T"," ").slice(0,16))} — ${esc(m.import_note||"")}.`:"Импорта ещё не было."}
+function mktImport(){$("mk_imp").textContent="Проверяю…";
+ fetch("/market/config",{method:"POST",headers:{"Content-Type":"application/json","X-Goofish-UI":"1"},body:JSON.stringify({import:true})})
+ .then(r=>r.json()).then(c=>{MKT={...MKT,...c};$("mk_imp").innerHTML=(c.found?"":"Новых экспортов нет. ")+mktImpText(MKT)+(c.found?" Предложения обновятся после перезагрузки страницы.":"")})
+ .catch(e=>$("mk_imp").textContent="Ошибка: "+e)}
+$("ttl").textContent=MODE==="prices"?"Цены РФ":"Каталог";document.title=$("ttl").textContent;
+$("undo").onclick=()=>{C=JSON.parse(ORIG);$("errs").innerHTML="";render();dirty();msg("Изменения отменены","")};
+$("save").onclick=()=>{$("save").disabled=true;msg("Сохраняю…","");
+ fetch("/catalog",{method:"POST",headers:{"Content-Type":"application/json","X-Goofish-UI":"1"},body:JSON.stringify(C)})
+ .then(r=>r.json().then(j=>({ok:r.ok,j})))
+ .then(({ok,j})=>{if(!ok){$("errs").innerHTML=`<div class="errs"><b>Не сохранено, исправьте:</b><ul>${(j.errors||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`;msg("Есть ошибки","err");$("save").disabled=false;return}
+  $("errs").innerHTML="";return load().then(()=>msg(`Сохранено. Лента пересчитана: ${j.good} вещей. Копия: ${j.backup}`,"ok"))})
+ .catch(()=>{msg("Приложение не отвечает: не сохранено","err");$("save").disabled=false})};
+window.addEventListener("beforeunload",e=>{if(C&&JSON.stringify(C)!==ORIG){e.preventDefault();e.returnValue=""}});
+load();
+</script></body></html>

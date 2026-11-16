@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Goofish → парсер",
+  "version": "0.1.0",
+  "description": "Передаёт объявления со страниц Goofish, которые вы открыли сами, в локальный goofish_parser_pro.py --listen.",
+  "permissions": [],
+  "host_permissions": ["http://127.0.0.1:8765/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Goofish → парсер" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.goofish.com/*"],
+      "js": ["hook.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.goofish.com/*"],
+      "js": ["relay.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

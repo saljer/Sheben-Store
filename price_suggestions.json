@@ -1,0 +1,30 @@
+{
+  "_help": "Предложения цен продажи в РФ для вкладки «Цены». Ничего не применяется само: принять или скрыть каждое можно в приложении. Основа — ваши реальные сделки; цены площадок — только верхняя граница (это цены, которые продавцы просят, а не за которые продают).",
+  "date": "2026-10-28",
+  "items": [
+    {"brand": "prada", "category": "bag", "value": 20000,
+     "why": "Ваши продажи нейлоновых Prada: выплата 13 500–22 500 ₽ через Oskelly и 24 990 ₽ в своём канале. Для сумок Prada, у которых модель не распознана, беру середину.",
+     "sources": ["ваши сделки"]},
+    {"brand": "prada", "model": "Нейлоновый рюкзак", "value": 22000,
+     "why": "Ближе к вашим мессенджерам. На eBay б/у рюкзаки Re-Nylon продают за $350–1 250, на Oskelly частные мужские сумки Prada — от 30 000 ₽.",
+     "sources": ["https://www.ebay.com/shop/prada-re-nylon-backpack?_nkw=prada+re+nylon+backpack", "https://oskelly.ru/catalog/prada/muzhskoe/sumki"]},
+    {"brand": "prada", "model": "Saffiano", "value": 30000,
+     "why": "Ресейл-площадки просят 55–134 тыс. ₽ (TSUM Collect, Second Friend Store), но это цены выставления. В своём канале на быструю продажу обычно уходит в 2–3 раза дешевле.",
+     "sources": ["https://collect.tsum.ru/item/ITEM163750", "https://secondfriendstore.ru/products/82075-sumka-prada"]},
+    {"brand": "prada", "model": "Re-Edition", "value": 25000,
+     "why": "Re-Edition — в основном женская линия. Ресейл просит 50–200 тыс. ₽, но продать её через мужской канал сложнее, поэтому осторожно.",
+     "sources": ["https://oskelly.ru/products/sumka-cherez-plecho-prada-new-886679"]},
+    {"brand": "prada", "category": "outerwear", "value": 20000,
+     "why": "Новые нейлоновые куртки Prada стоят 130–365 тыс. ₽ (prada.com, ЦУМ). Цен б/у в открытом доступе нет, поэтому оценка осторожная. Linea Rossa у вас — грааль, её лучше оценивать вручную.",
+     "sources": ["https://www.tsum.ru/product/he00428815-kurtka-na-molnii-prada-linea-rossa-prada-chernyi/"]},
+    {"brand": "prada", "category": "accessories", "value": 8000,
+     "why": "Кошельки и картхолдеры Prada б/у — осторожная оценка для своего канала.",
+     "sources": []},
+    {"brand": "golden_goose", "category": "sneakers", "value": 12000,
+     "why": "Ваши высокие GG ушли на Авито за 15 000 ₽. Для моделей, которые не распознаны, ставлю чуть ниже.",
+     "sources": ["ваши сделки"]},
+    {"brand": "golden_goose", "model": "Super-Star", "value": 13000,
+     "why": "Самая ходовая модель GG. Новые стоят 49–83 тыс. ₽ (Oskelly, ЦУМ), б/у в своём канале ориентируюсь на вашу продажу за 15 000 ₽.",
+     "sources": ["https://oskelly.ru/products/kedy-goldengoosedeluxebrand-new-2463726", "https://www.tsum.ru/catalog/?brand=1524990"]}
+  ]
+}

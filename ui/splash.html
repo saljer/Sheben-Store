@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sheben'Store</title>
+<style>
+:root{--bg:#090c0b;--fg:#e7ebe8;--muted:#8d968f;--accent:#86c4ae;--gold:#e2bd55;--bad:#f07a6c}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:radial-gradient(1100px 760px at 50% 34%,#13201b 0%,var(--bg) 64%);color:var(--fg);overflow:hidden;
+ font-family:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.ui{position:fixed;left:0;right:0;top:61vh;display:grid;justify-items:center;text-align:center;padding:0 16px;transition:opacity .6s ease,transform .6s ease,filter .6s ease}
+.out .ui,.out canvas{opacity:0;filter:blur(6px);transform:scale(1.04);transition:opacity .6s ease,transform .6s ease,filter .6s ease}
+.name{margin:0;font-size:clamp(30px,5.4vw,56px);font-weight:650;letter-spacing:.02em;line-height:1}
+.name span{display:inline-block;opacity:0;transform:translateY(28px) rotateX(70deg);filter:blur(8px);animation:rise .8s cubic-bezier(.2,.8,.2,1) forwards}
+.name .ap{color:var(--accent)}
+@keyframes rise{to{opacity:1;transform:none;filter:none}}
+.done .name{animation:pop .9s cubic-bezier(.2,.9,.2,1)}
+@keyframes pop{40%{transform:scale(1.07);text-shadow:0 0 28px rgb(226 189 85/.55)}}
+.phase{margin:16px 0 0;height:22px;font-size:15px;color:var(--fg);opacity:.92;position:relative;overflow:hidden;min-width:300px}
+.phase b{position:absolute;inset:0;font-weight:500;transition:transform .25s ease,opacity .25s ease}
+.phase b.swap{transform:translateY(-14px);opacity:0}
+.cnt{display:flex;gap:26px;margin-top:14px;font-variant-numeric:tabular-nums;opacity:0;animation:fade .8s ease 1s forwards}
+.cnt div{display:grid;gap:2px}.cnt b{font:600 19px "Cascadia Mono","Consolas",monospace}.cnt span{font-size:11.5px;color:var(--muted);letter-spacing:.04em}
+.cnt .g b{color:var(--accent)}.cnt .r b{color:var(--bad)}.cnt .y b{color:var(--gold)}
+@keyframes fade{to{opacity:1}}
+.bar{position:relative;height:3px;width:min(420px,76vw);margin:22px auto 0;border-radius:3px;background:rgb(255 255 255/.08);overflow:hidden;opacity:0;animation:fade .6s ease 1.2s forwards}
+.bar i{position:absolute;inset:0;transform-origin:left;transform:scaleX(0);background:linear-gradient(90deg,var(--accent),var(--gold));transition:transform .9s cubic-bezier(.3,.7,.3,1)}
+.bar b{position:absolute;top:0;bottom:0;width:90px;background:linear-gradient(90deg,transparent,rgb(255 255 255/.6),transparent);animation:glint 1.6s linear infinite}
+@keyframes glint{from{transform:translateX(-90px)}to{transform:translateX(460px)}}
+.note{margin:10px 0 0;color:var(--muted);font-size:12.5px;min-height:17px;font-variant-numeric:tabular-nums}
+@media (max-width:520px){.cnt{gap:14px}.cnt b{font-size:16px}.ui{top:58vh}}
+</style></head>
+<body>
+<canvas id="cv"></canvas>
+<div class="ui" id="ui">
+ <h1 class="name" id="name" aria-label="Sheben'Store"></h1>
+ <div class="phase" id="phase"><b>Открываю базу</b></div>
+ <div class="cnt"><div><b id="c_seen">0</b><span>лотов проверено</span></div><div class="r"><b id="c_bad">0</b><span>шлак и подделки</span></div>
+  <div class="g"><b id="c_good">0</b><span>в ленту</span></div><div class="y"><b id="c_top">0</b><span>оценка 75+</span></div></div>
+ <div class="bar"><i id="fill"></i><b></b></div>
+ <p class="note" id="note"></p>
+</div>
+<script>
+"use strict";
+const ETA=__ETA__,MIN=__MIN__,PREV=__PREV__;   // время прошлого запуска, минимум показа, итоги прошлого запуска
+const $=id=>document.getElementById(id),fmt=n=>Math.round(n).toLocaleString("ru-RU");
+const RM=matchMedia("(prefers-reduced-motion:reduce)").matches;
+// название по буквам
+[..."Sheben'Store"].forEach((c,i)=>{const s=document.createElement("span");s.textContent=c;if(c==="'")s.className="ap";
+ s.style.animationDelay=(.3+i*.05)+"s";$("name").appendChild(s)});
+
+// ---------- сцена: лоты падают через сито; шлак отваливается, годное собирается в горку, грааль — золотом
+const cv=$("cv"),cx=cv.getContext("2d");let W=0,H=0,DPR=1;
+function size(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0);slots=mkSlots()}
+const HAN="羽绒外套夹克卫衣毛衣牛仔包鞋正品闲置全新验货宝",LAT=["Prada","Moncler","Rick","CDG","Margiela","Stone","Guidi","Julius","ERD","Gucci","LV","Dior","CP"];
+const label=()=>Math.random()<.45?"¥"+(200+Math.round(Math.random()*90)*100):Math.random()<.5?LAT[Math.random()*LAT.length|0]:HAN.substr(Math.random()*(HAN.length-2)|0,2);
+let slots=[],P=[],spark=[],t0=performance.now(),last=t0,ready=false,doneAt=0,spawnAcc=0,judged={seen:0,bad:0,good:0,top:0};
+const SIEVE=()=>H*.27,PILE=()=>H*.5;
+function mkSlots(){const out=[],cw=Math.max(10,Math.min(18,W/70)),ch=cw*.62,base=PILE(),rows=9;
+ for(let r=0;r<rows;r++){const n=17-r*2;if(n<1)break;for(let i=0;i<n;i++){out.push({x:W/2+(i-(n-1)/2)*cw*1.05+(r%2?cw*.25:0),y:base-r*ch*1.15,r,used:null})}}
+ return out.sort((a,b)=>a.y===b.y?Math.abs(a.x-W/2)-Math.abs(b.x-W/2):b.y-a.y)}
+function spawn(){const sp=Math.min(W*.34,300),x=W/2+(Math.random()*2-1)*sp;
+ const roll=Math.random(),kind=roll<.022?"grail":roll<.32?"good":"bad";
+ P.push({x,y:-20-Math.random()*60,vx:(Math.random()-.5)*.25,vy:1.2+Math.random()*1.4,rot:(Math.random()-.5)*.5,vr:(Math.random()-.5)*.04,
+  kind,state:"fall",txt:label(),a:1,w:0,slot:null,born:performance.now()})}
+function judge(p){p.state="judged";judged.seen++;
+ if(p.kind==="bad"){judged.bad++;p.vx=(p.x<W/2?-1:1)*(1.6+Math.random()*2.4);p.vy=-1.5-Math.random()*1.5;p.vr=(Math.random()-.5)*.25;burst(p.x,SIEVE(),"#f07a6c",5)}
+ else{judged.good++;if(p.kind==="grail")judged.top++;else if(Math.random()<.11)judged.top++;
+  const free=slots.find(s=>!s.used)||slots[(Math.random()*slots.length)|0];if(free.used)free.used.state="gone";free.used=p;p.slot=free;
+  burst(p.x,SIEVE(),p.kind==="grail"?"#e2bd55":"#86c4ae",p.kind==="grail"?16:6)}}
+function burst(x,y,c,n){for(let i=0;i<n;i++)spark.push({x,y,vx:(Math.random()-.5)*2.4,vy:(Math.random()-.9)*2.2,l:1,c})}
+function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
+function draw(now){const dt=Math.min(4,(now-last)/16.7);last=now;const el=(now-t0)/1000;
+ cx.clearRect(0,0,W,H);
+ // поток: пока лента считается, лоты сыплются; после готовности — последние досыпаются
+ if(!ready||now-doneAt<500){spawnAcc+=dt*(RM?.2:Math.min(2.6,.6+el*.5));while(spawnAcc>1){spawnAcc--;spawn()}}
+ // сито
+ const sy=SIEVE(),sw=Math.min(W*.42,360);cx.save();
+ const g=cx.createLinearGradient(W/2-sw,0,W/2+sw,0);g.addColorStop(0,"rgba(134,196,174,0)");g.addColorStop(.5,"rgba(134,196,174,.55)");g.addColorStop(1,"rgba(134,196,174,0)");
+ cx.strokeStyle=g;cx.lineWidth=1.5;cx.setLineDash([3,5]);cx.lineDashOffset=-el*14;cx.beginPath();cx.moveTo(W/2-sw,sy);cx.lineTo(W/2+sw,sy);cx.stroke();
+ cx.setLineDash([]);cx.globalAlpha=.10+.06*Math.sin(el*3);cx.fillStyle="#86c4ae";cx.fillRect(W/2-sw,sy-14,sw*2,28);cx.restore();
+ // скан-луч по ситу
+ const sx=W/2-sw+((el*.55)%1)*sw*2;const sg=cx.createRadialGradient(sx,sy,0,sx,sy,34);sg.addColorStop(0,"rgba(255,255,255,.22)");sg.addColorStop(1,"rgba(255,255,255,0)");
+ cx.fillStyle=sg;cx.fillRect(sx-34,sy-34,68,68);
+ // лоты
+ cx.font="600 10px Consolas,monospace";cx.textAlign="center";cx.textBaseline="middle";
+ for(const p of P){
+  if(p.state==="fall"){p.vy+=.035*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;if(p.y>=sy)judge(p)}
+  else if(p.state==="judged"&&p.kind==="bad"){p.vy+=.16*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;p.a-=.012*dt;if(p.a<=0||p.y>H+40)p.state="gone"}
+  else if(p.state==="judged"){const s=p.slot,k=Math.min(1,.07*dt);p.x+=(s.x-p.x)*k;p.y+=(s.y-p.y)*k;p.rot*=1-k;
+   if(Math.abs(s.x-p.x)<.6&&Math.abs(s.y-p.y)<.6){p.state="home";p.x=s.x;p.y=s.y;p.rot=0}}
+  if(p.state==="gone")continue;
+  const big=p.state==="fall",w=big?Math.max(34,cx.measureText(p.txt).width+12):Math.max(10,Math.min(18,W/70)),h=big?16:w*.62;
+  cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.globalAlpha=Math.max(0,p.a)*(big?.78:1);
+  const col=p.state==="fall"?"rgba(231,235,232,.16)":p.kind==="bad"?"rgba(240,122,108,.22)":p.kind==="grail"?"#e2bd55":"rgba(134,196,174,.85)";
+  if(p.kind==="grail"&&p.state!=="fall"){cx.shadowColor="#e2bd55";cx.shadowBlur=18+8*Math.sin(el*4)}
+  rr(-w/2,-h/2,w,h,big?5:2);cx.fillStyle=col;cx.fill();
+  if(big){cx.strokeStyle="rgba(231,235,232,.30)";cx.lineWidth=1;cx.stroke();cx.fillStyle="rgba(231,235,232,.82)";cx.fillText(p.txt,0,.5)}
+  else if(p.kind==="bad"){cx.strokeStyle="rgba(240,122,108,.8)";cx.lineWidth=1;cx.beginPath();cx.moveTo(-w/2+2,-h/2+2);cx.lineTo(w/2-2,h/2-2);cx.stroke()}
+  cx.restore()}
+ P=P.filter(p=>p.state!=="gone");
+ // искры
+ for(const s of spark){s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=.12*dt;s.l-=.055*dt;cx.globalAlpha=Math.max(0,s.l);cx.fillStyle=s.c;cx.fillRect(s.x,s.y,2,2)}
+ cx.globalAlpha=1;spark=spark.filter(s=>s.l>0);
+ // горка: подсветка под ней
+ const py=PILE(),pg=cx.createRadialGradient(W/2,py+8,0,W/2,py+8,Math.min(W*.3,240));pg.addColorStop(0,"rgba(134,196,174,.16)");pg.addColorStop(1,"rgba(134,196,174,0)");
+ const R=Math.min(W*.3,240);cx.fillStyle=pg;cx.fillRect(W/2-R,py+8-R,R*2,R*2);
+ cx.strokeStyle="rgba(255,255,255,.08)";cx.beginPath();cx.moveTo(W/2-Math.min(W*.3,230),py+7);cx.lineTo(W/2+Math.min(W*.3,230),py+7);cx.stroke();
+ counters(el);requestAnimationFrame(draw)}
+
+// ---------- этапы и счётчики: идут по времени прошлого запуска, в конце — настоящие итоги
+const PH=[[0,"Открываю базу"],[.12,"Отсеиваю шлак на входе"],[.3,"Ищу подделки: шаблоны текста и фото"],[.5,"Сверяю цены рынка России"],
+ [.68,"Считаю затраты и прибыль"],[.84,"Ранжирую находки"],[.95,"Собираю ленту"]];
+let phase="",prog=0,rows=0,fin=null;
+function setPhase(t){if(t===phase)return;phase=t;const b=$("phase").firstElementChild;b.classList.add("swap");
+ setTimeout(()=>{b.textContent=t;b.classList.remove("swap")},260)}
+function counters(){const N=rows||PREV.rows||0,good=fin?fin.good:(PREV.good||N*.48),top=fin?fin.top:(PREV.top||good*.09);
+ const k=fin?1:prog;$("c_seen").textContent=fmt(N*k);$("c_bad").textContent=fmt(Math.max(0,N-good)*k);$("c_good").textContent=fmt(good*k);$("c_top").textContent=fmt(top*k)}
+async function tick(){let j=null;try{j=await (await fetch("/boot",{cache:"no-store"})).json()}catch(e){}
+ const sec=(performance.now()-t0)/1000;
+ if(j){rows=j.rows||rows}
+ if(j&&j.ready){prog=1;fin={good:j.good||PREV.good||0,top:j.top||PREV.top||0};setPhase("Готово");$("fill").style.transform="scaleX(1)";
+  $("note").textContent=j.sec?`лента посчитана за ${Math.round(j.sec)} с`:"";setTimeout(finish,Math.max(0,MIN-sec)*1000);return}
+ const eta=(j&&j.eta)||ETA,s=(j&&j.sec)||sec;prog=Math.min(.95,eta?s/eta:1-Math.exp(-s/25));
+ $("fill").style.transform=`scaleX(${prog.toFixed(3)})`;setPhase((PH.filter(p=>p[0]<=prog).pop()||PH[0])[1]);
+ const left=Math.max(0,Math.round(eta-s));$("note").textContent=j?(eta&&left>1?`ещё ~${left} с`:"почти готово"):"жду сервер…";
+ setTimeout(tick,500)}
+function finish(){if(ready)return;ready=true;doneAt=performance.now();document.body.classList.add("done");
+ setTimeout(()=>{document.body.classList.add("out");setTimeout(()=>location.replace(location.href),620)},1300)}
+addEventListener("resize",size);size();requestAnimationFrame(draw);setTimeout(tick,250);
+</script>
+</body></html>

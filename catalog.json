@@ -1,0 +1,1723 @@
+{
+  "_help": "Каталог для goofish_parser_pro.py. Правьте свободно: слова на китайском ищутся как подстрока, латиница как отдельное слово (prada найдёт 'prada包', но 'ring' не найдёт 'spring'). Оценки 0-100, модификаторы (desire) прибавляются к оценке. Цены продажи sell_rub в рублях: это цена, за которую вещь уходит в своём канале/на Авито.",
+  "weights": {
+    "profit": 27.5,
+    "liquidity": 27.5,
+    "condition": 20,
+    "desire": 15,
+    "trust": 10
+  },
+  "channels": [
+    {
+      "name": "Свой TG / Авито",
+      "price_factor": 1,
+      "fee_rate": 0,
+      "fixed_fee_rub": 0,
+      "_note": "Prada нейлон ушёл в канале за 24 990, GGDB на Авито за 15 000"
+    },
+    {
+      "name": "Oskelly",
+      "price_factor": 1.2,
+      "fee_rate": 0,
+      "fixed_fee_rub": 7500,
+      "_note": "по вашим сделкам: выставлено 30 000 -> выплата 22 500; комиссия 7 500 оба раза"
+    }
+  ],
+  "rarity_cap": 15,
+  "rarity": [
+    {
+      "name": "Архив/винтаж",
+      "desire": 6,
+      "words": ["vintage", "复古款", "老款", "绝版", "停产", "archive", "90年代", "80年代", "中古", "古着", "古董", "00s", "90s", "80s", "70s", "2000s", "1990s", "1980s"]
+    },
+    {
+      "name": "Показ/лимитка",
+      "desire": 8,
+      "words": ["秀款", "走秀", "t台", "限量", "限定", "特别版", "limited", "runway", "special edition", "秀场"]
+    },
+    {
+      "name": "Экзотическая кожа",
+      "desire": 8,
+      "words": ["鳄鱼", "鸵鸟", "蜥蜴", "蟒蛇", "蛇皮", "crocodile", "ostrich", "python", "lizard", "exotic"]
+    },
+    {
+      "name": "Коллаборация",
+      "desire": 6,
+      "words": ["联名", "collab"]
+    },
+    {
+      "name": "Продавец пишет «редкое»",
+      "desire": 3,
+      "words": ["稀有", "罕见", "孤品", "典藏", "收藏级", "y2k", "千禧", "绝品"]
+    }
+  ],
+  "collab_words": ["联名", "collab", "合作款", " x ", "×"],
+  "modifiers": [
+    {
+      "name": "женская линия",
+      "reject": true,
+      "words": ["gaufre", "bonnie", "softlux", "soft lux", "cleo", "galleria", "cahier", "arqué", "arque", "褶皱", "皱褶"]
+    },
+    {
+      "name": "женская модель",
+      "desire": -15,
+      "penalty": 20,
+      "words": ["女士", "女款", "女包", "女生", "女式", "少女"],
+      "unless": ["男女", "中性", "unisex", "情侣"]
+    },
+    {
+      "name": "мужская модель",
+      "desire": 5,
+      "words": ["男士", "男款", "男包", "男式"]
+    },
+    {
+      "name": "детское",
+      "reject": true,
+      "words": ["儿童", "童装", "童款", "童鞋", "宝宝", "小童", "中大童", "kids", "junior", "男童", "女童", "大童", "青少年", "婴儿", "幼儿", "kid", "children", "8y", "10y", "12y", "14y", "16y", "8a", "10a", "12a", "14a"]
+    },
+    {
+      "name": "мои минусы",
+      "desire": -15,
+      "penalty": 10,
+      "words": ["色尼", "色尼龙", "内里", "黑色尼", "黑色尼龙", "痕迹", "用痕", "干净", "里干", "使用痕", "用痕迹", "所示", "龙斜", "使用痕迹", "内里干", "挎包", "斜挎包"]
+    }
+  ],
+  "categories": {
+    "bag": {
+      "name": "Сумки",
+      "low_floor": 300,
+      "min_price": 800,
+      "words": ["包", "袋", "bag", "tote", "messenger", "crossbody", "backpack", "邮差", "斜挎", "单肩", "手提", "双肩", "托特", "公文", "手袋", "clutch", "pochette", "hobo"],
+      "exclude": ["钱包", "卡包", "零钱包", "证件包", "钥匙包", "化妆包", "包装", "包邮", "包退", "包真", "包含", "包括", "红包", "包换", "包鉴", "面包", "包浆", "包裹", "鞋包", "防尘袋", "购物袋", "包装袋", "原布袋", "布袋", "塑料袋", "收纳袋", "密封袋", "口袋"],
+      "subtypes": [
+        {
+          "name": "мессенджер/через плечо",
+          "desire": 8,
+          "words": ["邮差", "斜挎", "单肩", "messenger", "crossbody", "shoulder", "相机包"]
+        },
+        {
+          "name": "женская форма (хобо, подмышечная)",
+          "desire": -15,
+          "words": ["hobo", "腋下", "水饺", "饺子包", "月牙"]
+        },
+        {
+          "name": "поясная/нагрудная",
+          "desire": -45,
+          "words": ["腰包", "胸包", "belt bag", "bum bag", "waist bag", "fanny", "sling"]
+        },
+        {
+          "name": "дорожная",
+          "desire": -15,
+          "words": ["旅行包", "行李包", "旅行袋", "keepall", "duffle", "duffel", "weekender"]
+        },
+        {
+          "name": "клатч",
+          "desire": -10,
+          "words": ["手拿包", "clutch"]
+        }
+      ],
+      "checks": ["Живые фото: внутренняя бирка/серийник, подкладка, молнии (марка бегунка), низ и углы", "Строчка ровная, без клея по краям; фурнитура тяжёлая, гравировка чёткая"]
+    },
+    "shoes": {
+      "name": "Обувь",
+      "low_floor": 200,
+      "min_price": 500,
+      "words": ["靴", "皮鞋", "乐福", "loafer", "boot", "德比", "切尔西", "分趾", "tabi", "马丁靴", "凉鞋", "拖鞋", "sandal", "derby", "boots", "loafers"],
+      "subtypes": [
+        {
+          "name": "сандалии/шлёпанцы",
+          "desire": -10,
+          "words": ["凉鞋", "拖鞋", "sandal", "slide"]
+        }
+      ],
+      "checks": ["Фото стельки, этикетки внутри (размер, артикул, страна) и подошвы целиком", "Износ подошвы и задника по фото — от него зависит цена перепродажи"]
+    },
+    "sneakers": {
+      "name": "Кеды и кроссовки",
+      "low_floor": 200,
+      "min_price": 500,
+      "words": ["鞋", "球鞋", "运动鞋", "板鞋", "小白鞋", "脏脏鞋", "德训", "跑鞋", "篮球鞋", "老爹鞋", "sneaker", "trainer", "高帮", "低帮", "帆布鞋", "sneakers", "trainers", "runner"],
+      "subtypes": [],
+      "checks": ["Фото этикетки внутри язычка (артикул, размер, дата/страна) — артикул сверьте с цветом модели", "Подошва целиком и задник: износ, отклейки; ровность строчки по фото"]
+    },
+    "outerwear": {
+      "name": "Верхняя одежда",
+      "low_floor": 200,
+      "min_price": 600,
+      "words": ["夹克", "外套", "羽绒", "风衣", "大衣", "冲锋衣", "棉服", "马甲", "皮衣", "jacket", "coat", "down jacket", "parka", "派克", "软壳", "硬壳", "防风", "vest", "gilet", "bomber", "blouson", "puffer", "anorak", "windbreaker", "track jacket"],
+      "subtypes": [],
+      "checks": ["Фото бирок: основная, состав и уходовая (с кодом модели/сезона) — шрифты и швы бирок ровные", "Замер по плечам и длине — размеры у брендов маломерят/большемерят"]
+    },
+    "clothing": {
+      "name": "Одежда",
+      "low_floor": 100,
+      "min_price": 300,
+      "words": ["t恤", "短袖", "长袖", "卫衣", "衬衫", "毛衣", "针织", "裤", "牛仔", "hoodie", "shirt", "sweater", "tee", "pants", "trousers", "jeans", "polo", "t-shirt", "sweatshirt", "cardigan", "shorts", "denim", "knit", "开衫", "背心"],
+      "subtypes": [],
+      "checks": ["Фото бирок: основная и уходовая с артикулом; шрифт и пришивка ровные", "Замеры (ПОГ, длина) — размер на бирке у брендов отличается"]
+    },
+    "jewelry": {
+      "name": "Украшения",
+      "low_floor": 200,
+      "min_price": 500,
+      "words": ["戒指", "项链", "手链", "吊坠", "耳钉", "耳环", "手镯", "银饰", "ring", "necklace", "bracelet", "pendant", "925"],
+      "subtypes": [],
+      "checks": ["Клейма пробы (.925 / 750) и бренда — чёткие, без «оплывших» краёв; вес изделия", "Фото чека/сертификата и фирменной упаковки, если есть"]
+    },
+    "accessories": {
+      "name": "Аксессуары",
+      "low_floor": 100,
+      "min_price": 300,
+      "words": ["钱包", "卡包", "卡夹", "钥匙包", "名片夹", "皮带", "腰带", "帽", "围巾", "手套", "钥匙扣", "wallet", "cardholder", "card holder", "belt", "cap", "hat", "scarf", "beanie"],
+      "subtypes": [],
+      "checks": ["Фото клейм, бирок и серийного номера крупно", "Фурнитура: гравировка чёткая, покрытие без облезания"]
+    },
+    "eyewear": {
+      "name": "Очки",
+      "enabled": false,
+      "words": ["眼镜", "镜架", "墨镜", "太阳镜", "镜框", "光学镜", "sunglasses", "glasses", "eyewear"]
+    },
+    "other": {
+      "name": "Прочее (не ищем)",
+      "enabled": false,
+      "words": ["香水", "口红", "护肤", "手机壳", "phone case", "airpods", "耳机", "手表", "watch", "perfume"]
+    }
+  },
+  "brands": {
+    "prada": {
+      "name": "Prada",
+      "aliases": ["prada", "普拉达", "普拉"],
+      "desire": 72,
+      "liquidity": 72,
+      "ambassador": ["bag", "sneakers", "outerwear"],
+      "fakes": ["p家", "p标", "pra风格", "prad*", "pr*da", "普拉达家", "p普拉达"],
+      "min_price": {
+        "bag": 700,
+        "sneakers": 800,
+        "outerwear": 800,
+        "*": 400
+      },
+      "models": [
+        {
+          "name": "Кожаная куртка (архив)",
+          "category": "outerwear",
+          "words": ["皮衣", "皮夹克", "皮外套", "leather jacket", "leather ja"],
+          "desire": 90,
+          "sell_rub": 60000,
+          "sell_date": "2026-10-29",
+          "checks": ["Кожа плотная, с естественным износом; подкладка и бирки (Prada Milano / Prada Sport с красной полосой) по эпохе", "Фурнитура riri / lampo с гравировкой; сравните модель с архивными фото по сезону (AW2007 и т. п.)"]
+        },
+        {
+          "name": "Нейлоновый мессенджер",
+          "category": "bag",
+          "desire": 10,
+          "liquidity": 85,
+          "sell_rub": 25000,
+          "all": [
+            ["尼龙", "nylon", "降落伞", "re-nylon", "renylon"],
+            ["邮差", "messenger", "斜挎", "单肩", "crossbody", "shoulder"]
+          ],
+          "checks": ["Нейлон плотный, с матовым блеском, не «пластиковый»; у Re-Nylon на ткани/бирке есть отметка о переработанном нейлоне", "Подкладка с повторяющимся логотипом или однотонная фирменная — сравните с официальными фото этой модели"]
+        },
+        {
+          "name": "Нейлоновый рюкзак",
+          "category": "bag",
+          "desire": 75,
+          "liquidity": 75,
+          "all": [
+            ["尼龙", "nylon", "降落伞", "re-nylon", "renylon"],
+            ["双肩", "backpack", "背包"]
+          ],
+          "checks": ["Нейлон плотный, с матовым блеском, не «пластиковый»; у Re-Nylon на ткани/бирке есть отметка о переработанном нейлоне", "Подкладка с повторяющимся логотипом или однотонная фирменная — сравните с официальными фото этой модели"],
+          "sell_rub": 25000,
+          "sell_date": "2026-10-29"
+        },
+        {
+          "name": "America's Cup",
+          "category": "sneakers",
+          "desire": 80,
+          "liquidity": 80,
+          "words": ["america's cup", "americas cup", "美洲杯"],
+          "sell_rub": 28000,
+          "sell_date": "2026-10-29",
+          "checks": ["America's Cup: лакированная кожа + сетка, красная полоса на заднике; этикетка внутри с артикулом"]
+        },
+        {
+          "name": "Re-Edition",
+          "category": "bag",
+          "desire": 65,
+          "liquidity": 70,
+          "words": ["re-edition", "reedition", "re edition"],
+          "sell_rub": 35000,
+          "sell_date": "2026-10-29",
+          "checks": ["Re-Edition: треугольник на клапане/корпусе, съёмный кошелёк в комплекте у 2005"]
+        },
+        {
+          "name": "Saffiano",
+          "desire": 62,
+          "liquidity": 65,
+          "words": ["saffiano", "十字纹"],
+          "sell_rub": 45000,
+          "sell_date": "2026-10-29",
+          "checks": ["Saffiano: тиснение «ёлочкой» ровное и неглубокое, кожа жёсткая"],
+          "category": "bag"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Prada Sport / Linea Rossa",
+          "desire": 20,
+          "grail": true,
+          "words": ["linea rossa", "prada sport", "红标", "红条"]
+        },
+        {
+          "name": "архивный",
+          "desire": 6,
+          "words": ["老款", "vintage", "中古", "停产", "绝版", "古着", "2000年", "90年代"]
+        },
+        {
+          "name": "треугольник",
+          "desire": 3,
+          "words": ["三角标", "triangle"]
+        },
+        {
+          "name": "тотал блэк",
+          "desire": 8,
+          "category": "sneakers",
+          "words": ["全黑", "黑武士", "triple black", "all black", "total black"]
+        }
+      ],
+      "checks": ["Попросите проверку через 验货宝 — это самая надёжная проверка до оплаты", "Треугольник: ровная эмаль, чёткие края, буквы без «плывущих» засечек; сравните с фото модели на prada.com", "Фурнитура: гравировка PRADA чёткая, покрытие не облезает, металл тяжёлый", "Внутренняя бирка/табличка и строчка: ровный шаг стежка, без торчащих ниток и клея", "Попросите живые фото: бирка внутри, подкладка, молнии, низ сумки"],
+      "sell_rub": {
+        "bag": 20000,
+        "outerwear": 35000,
+        "accessories": 8000,
+        "sneakers": 25000,
+        "shoes": 25000,
+        "clothing": 12000,
+        "jewelry": 10000
+      },
+      "sell_dates": {
+        "bag": "2026-10-28",
+        "outerwear": "2026-10-29",
+        "accessories": "2026-10-28",
+        "sneakers": "2026-10-29",
+        "shoes": "2026-10-29",
+        "clothing": "2026-10-29",
+        "jewelry": "2026-10-29"
+      }
+    },
+    "margiela": {
+      "name": "Maison Margiela",
+      "aliases": ["maison margiela", "margiela", "马吉拉", "梅森马吉拉", "马丁马吉拉", "mm6", "margeila", "margiella"],
+      "desire": 72,
+      "liquidity": 75,
+      "ambassador": ["sneakers", "shoes"],
+      "min_price": {
+        "*": 500
+      },
+      "models": [
+        {
+          "name": "Replica",
+          "category": "sneakers",
+          "desire": 80,
+          "liquidity": 85,
+          "words": ["replica", "德训", "gat"],
+          "sell_rub": 25000,
+          "sell_date": "2026-10-29",
+          "checks": ["Стелька: надпись Replica с описанием оригинальной модели и места; подошва бежевая гамма"]
+        },
+        {
+          "name": "Tabi",
+          "category": "shoes",
+          "desire": 70,
+          "liquidity": 75,
+          "words": ["tabi", "分趾"],
+          "sell_rub": 35000,
+          "sell_date": "2026-10-29",
+          "checks": ["Разделённый носок симметричен; на стельке логотип/надпись Tabi, Made in Italy"]
+        }
+      ],
+      "variants": [],
+      "sell_rub": {
+        "sneakers": 25000,
+        "shoes": 28000,
+        "clothing": 12000,
+        "outerwear": 25000,
+        "bag": 25000,
+        "accessories": 8000,
+        "jewelry": 10000
+      },
+      "sell_dates": {
+        "sneakers": "2026-10-29",
+        "shoes": "2026-10-29",
+        "clothing": "2026-10-29",
+        "outerwear": "2026-10-29",
+        "bag": "2026-10-29",
+        "accessories": "2026-10-29",
+        "jewelry": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Белые «четыре стежка» сзади и бирка с цифрами 0–23 (номер линии обведён) — шрифт и обводка ровные", "Внутри: Made in Italy (обувь/сумки), размер и артикул на стельке/этикетке; сравните с фото на maisonmargiela.com"]
+    },
+    "golden_goose": {
+      "name": "Golden Goose",
+      "aliases": ["golden goose", "ggdb", "金鹅", "黄金鹅"],
+      "desire": 80,
+      "liquidity": 80,
+      "ambassador": ["sneakers"],
+      "min_price": {
+        "*": 400
+      },
+      "models": [
+        {
+          "name": "Высокие",
+          "category": "sneakers",
+          "desire": 88,
+          "liquidity": 82,
+          "sell_rub": 28000,
+          "words": ["高帮", "hi star", "high top", "high-top", "slide", "francy"],
+          "sell_date": "2026-10-29"
+        },
+        {
+          "name": "Super-Star",
+          "category": "sneakers",
+          "desire": 82,
+          "liquidity": 82,
+          "words": ["super-star", "superstar", "super star"],
+          "sell_rub": 25000,
+          "sell_date": "2026-10-29"
+        }
+      ],
+      "variants": [
+        {
+          "name": "замша",
+          "desire": 8,
+          "words": ["麂皮", "翻毛", "suede"]
+        },
+        {
+          "name": "спорная расцветка",
+          "desire": -10,
+          "words": ["亮片", "豹纹", "glitter", "leopard", "闪粉"]
+        }
+      ],
+      "checks": ["Попросите проверку через 验货宝 или фото этикетки внутри язычка и стельки", "Звезда пришита аккуратно, ровный контур, без клея по краю", "Логотип на заднике ровный и не смещён; шрифт сравните с официальными фото", "«Состаренность» у оригинала у каждой пары своя; одинаково ровная грязь на всех фото — тревожный знак"],
+      "sell_rub": {
+        "sneakers": 22000,
+        "shoes": 12000,
+        "clothing": 8000
+      },
+      "sell_dates": {
+        "sneakers": "2026-10-29",
+        "shoes": "2026-10-29",
+        "clothing": "2026-10-29"
+      }
+    },
+    "bottega": {
+      "name": "Bottega Veneta",
+      "aliases": ["bottega veneta", "bottega", "葆蝶家", "bv", "宝缇嘉"],
+      "desire": 70,
+      "liquidity": 70,
+      "ambassador": ["bag"],
+      "min_price": {
+        "bag": 1000,
+        "*": 500
+      },
+      "models": [
+        {
+          "name": "Cassette mini",
+          "category": "bag",
+          "all": [
+            ["cassette"],
+            ["mini", "迷你", "六格", "6格", "小号"]
+          ],
+          "sell_rub": 60000,
+          "sell_date": "2026-10-29",
+          "checks": ["Mini: 6 ячеек плетения, кожа мягкая; внутри бирка с серийником и Made in Italy"]
+        },
+        {
+          "name": "Cassette",
+          "category": "bag",
+          "desire": 65,
+          "liquidity": 72,
+          "words": ["cassette", "磁带"],
+          "sell_rub": 90000,
+          "sell_date": "2026-10-29",
+          "checks": ["Cassette: крупное плетение «maxi intrecciato», кожа мягкая; внутри бирка с серийником"]
+        }
+      ],
+      "variants": [
+        {
+          "name": "старое плетение",
+          "desire": 12,
+          "words": ["老款", "中古", "vintage", "经典编织", "intrecciato"]
+        },
+        {
+          "name": "плетение",
+          "desire": 3,
+          "words": ["编织"]
+        }
+      ],
+      "sell_rub": {
+        "bag": 70000,
+        "shoes": 25000,
+        "accessories": 15000,
+        "clothing": 15000,
+        "outerwear": 40000,
+        "sneakers": 20000
+      },
+      "sell_dates": {
+        "bag": "2026-10-29",
+        "shoes": "2026-10-29",
+        "accessories": "2026-10-29",
+        "clothing": "2026-10-29",
+        "outerwear": "2026-10-29",
+        "sneakers": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Плетение intrecciato ровное, полоски одной ширины, без клея и торчащих краёв", "Внутренняя бирка с серийным номером и Made in Italy; на новых моделях логотипа снаружи нет"]
+    },
+    "rick_owens": {
+      "name": "Rick Owens",
+      "aliases": ["rick owens", "rickowens", "瑞克欧文斯", "瑞克·欧文斯", "drkshdw"],
+      "desire": 70,
+      "liquidity": 60,
+      "ambassador": [],
+      "min_price": {
+        "*": 500
+      },
+      "models": [
+        {
+          "name": "Geobasket",
+          "category": "sneakers",
+          "desire": 72,
+          "liquidity": 65,
+          "words": ["geobasket", "geo basket"],
+          "sell_rub": 55000,
+          "sell_date": "2026-10-29",
+          "checks": ["Geobasket: толстый «крылатый» язык, подошва с выступающим носком; Made in Italy"]
+        },
+        {
+          "name": "Ramones",
+          "category": "sneakers",
+          "desire": 72,
+          "liquidity": 65,
+          "words": ["ramones", "ramone"],
+          "sell_rub": 35000,
+          "sell_date": "2026-10-29",
+          "checks": ["Ramones: высокий/низкий канвас или кожа, толстая резиновая подошва, бирка Rick Owens/DRKSHDW"]
+        }
+      ],
+      "variants": [],
+      "sell_rub": {
+        "sneakers": 40000,
+        "shoes": 40000,
+        "outerwear": 50000,
+        "clothing": 15000,
+        "bag": 20000
+      },
+      "sell_dates": {
+        "sneakers": "2026-10-29",
+        "shoes": "2026-10-29",
+        "outerwear": "2026-10-29",
+        "clothing": "2026-10-29",
+        "bag": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Бирки: «Rick Owens» / DRKSHDW и уходовая с кодом сезона (RU…/RR…/DU…) — код сверьте с моделью", "Обувь — Made in Italy; кожа толстая, края обработаны, без «пластикового» блеска"]
+    },
+    "ccp": {
+      "name": "Carol Christian Poell",
+      "aliases": ["carol christian poell", "carol christian", "ccp", "卡罗尔克里斯蒂安"],
+      "desire": 92,
+      "liquidity": 45,
+      "ambassador": [],
+      "min_price": {
+        "*": 300
+      },
+      "models": [],
+      "variants": [
+        {
+          "name": "авангард-грааль",
+          "desire": 0,
+          "grail": true,
+          "words": ["carol christian poell", "carol christian", "ccp", "卡罗尔克里斯蒂安"]
+        }
+      ],
+      "sell_rub": {
+        "shoes": 60000,
+        "sneakers": 50000,
+        "outerwear": 80000,
+        "clothing": 30000,
+        "bag": 40000,
+        "accessories": 20000
+      },
+      "sell_dates": {
+        "shoes": "2026-10-29",
+        "sneakers": "2026-10-29",
+        "outerwear": "2026-10-29",
+        "clothing": "2026-10-29",
+        "bag": "2026-10-29",
+        "accessories": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Ручная работа и object-dyed: неровность окраса и швов — норма, но бирка с номером модели обязательна", "Сравните модель с архивными фото на Grailed/архивах CCP — реплик меньше, но «под CCP» продают no-name"]
+    },
+    "bbs": {
+      "name": "Boris Bidjan Saberi",
+      "aliases": ["boris bidjan saberi", "boris bidjan", "bbs", "鲍里斯"],
+      "desire": 88,
+      "liquidity": 45,
+      "ambassador": [],
+      "min_price": {
+        "*": 300
+      },
+      "models": [],
+      "variants": [
+        {
+          "name": "авангард-грааль",
+          "desire": 0,
+          "grail": true,
+          "words": ["boris bidjan saberi", "boris bidjan", "bbs", "鲍里斯"]
+        }
+      ],
+      "sell_rub": {
+        "shoes": 40000,
+        "sneakers": 35000,
+        "outerwear": 50000,
+        "clothing": 20000,
+        "bag": 30000
+      },
+      "sell_dates": {
+        "shoes": "2026-10-29",
+        "sneakers": "2026-10-29",
+        "outerwear": "2026-10-29",
+        "clothing": "2026-10-29",
+        "bag": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Бирка BBS с номером модели и материалом; обувь — ручная работа Испания/Италия", "Сравните модель и бирку с архивными фото на Grailed; «как BBS» в тексте — не BBS"]
+    },
+    "balenciaga": {
+      "name": "Balenciaga",
+      "aliases": ["balenciaga", "巴黎世家", "balenciga"],
+      "desire": 55,
+      "liquidity": 65,
+      "ambassador": [],
+      "category_desire": {
+        "sneakers": -10
+      },
+      "min_price": {
+        "*": 500
+      },
+      "models": [
+        {
+          "name": "Triple S",
+          "category": "sneakers",
+          "desire": 50,
+          "liquidity": 60,
+          "words": ["triple s", "triples"],
+          "sell_rub": 30000,
+          "sell_date": "2026-10-29",
+          "checks": ["Triple S: три слоя подошвы, вышивка размера на носке; ранние — Made in Italy, поздние — China"]
+        },
+        {
+          "name": "Track",
+          "category": "sneakers",
+          "desire": 50,
+          "liquidity": 60,
+          "words": ["track"],
+          "sell_rub": 25000,
+          "sell_date": "2026-10-29",
+          "checks": ["Track: много слоёв сетки и TPU, логотип на язычке и подошве — без «плывущего» шрифта"]
+        },
+        {
+          "name": "Runner",
+          "category": "sneakers",
+          "desire": 55,
+          "liquidity": 65,
+          "words": ["runner"],
+          "sell_rub": 35000,
+          "sell_date": "2026-10-30",
+          "checks": ["Runner: рваные края, потёртости и «грязная» подошва — задумка дизайна, не дефект; логотип и размер на язычке, артикул на этикетке внутри — сверьте с balenciaga.com"]
+        }
+      ],
+      "variants": [],
+      "sell_rub": {
+        "sneakers": 25000,
+        "shoes": 18000,
+        "bag": 35000,
+        "outerwear": 30000,
+        "clothing": 15000,
+        "jewelry": 10000,
+        "accessories": 10000
+      },
+      "sell_dates": {
+        "sneakers": "2026-10-29",
+        "shoes": "2026-10-29",
+        "bag": "2026-10-29",
+        "outerwear": "2026-10-29",
+        "clothing": "2026-10-29",
+        "jewelry": "2026-10-29",
+        "accessories": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Этикетка внутри язычка: артикул (например 536737 у Triple S), размер, страна — артикул сверьте с цветом", "Шрифт логотипа и вышивки ровный; у сумок — серийная табличка внутри"]
+    },
+    "stone_island": {
+      "name": "Stone Island",
+      "aliases": ["stone island", "stoneisland", "石头岛"],
+      "desire": 70,
+      "liquidity": 75,
+      "ambassador": ["outerwear"],
+      "min_price": {
+        "*": 300
+      },
+      "models": [
+        {
+          "name": "Трикотаж / свитер",
+          "category": "clothing",
+          "strict": true,
+          "sell_rub": 18000,
+          "sell_date": "2026-10-29",
+          "words": ["毛衣", "针织", "开衫", "羊毛衫", "knit", "knitwear", "sweater", "cardigan", "jumper"]
+        },
+        {
+          "name": "Худи",
+          "category": "clothing",
+          "strict": true,
+          "sell_rub": 14000,
+          "sell_date": "2026-10-29",
+          "all": [
+            ["卫衣", "hoodie", "sweatshirt"],
+            ["连帽", "hoodie", "帽衫", "帽子"]
+          ]
+        },
+        {
+          "name": "Свитшот",
+          "category": "clothing",
+          "strict": true,
+          "sell_rub": 12000,
+          "sell_date": "2026-10-29",
+          "words": ["卫衣", "sweatshirt", "crewneck", "crew neck"]
+        },
+        {
+          "name": "Овершот / рубашка",
+          "category": "clothing",
+          "strict": true,
+          "sell_rub": 15000,
+          "sell_date": "2026-10-29",
+          "words": ["衬衫", "衬衣", "overshirt", "over shirt", "shirt jacket"]
+        },
+        {
+          "name": "Шорты",
+          "category": "clothing",
+          "strict": true,
+          "sell_rub": 7000,
+          "sell_date": "2026-10-29",
+          "words": ["短裤", "shorts", "bermuda"]
+        },
+        {
+          "name": "Брюки / карго",
+          "category": "clothing",
+          "strict": true,
+          "sell_rub": 10000,
+          "sell_date": "2026-10-29",
+          "words": ["裤", "pants", "trousers", "cargo", "jogger", "工装裤"]
+        },
+        {
+          "name": "Футболка / поло",
+          "category": "clothing",
+          "strict": true,
+          "sell_rub": 6000,
+          "sell_date": "2026-10-29",
+          "words": ["t恤", "短袖", "tee", "t-shirt", "polo", "长袖t"]
+        }
+      ],
+      "variants": [
+        {
+          "name": "Shadow Project",
+          "desire": 15,
+          "words": ["shadow project", "影子计划", "影子系列"]
+        },
+        {
+          "name": "Ghost",
+          "desire": 8,
+          "words": ["ghost", "幽灵"]
+        }
+      ],
+      "sell_rub": {
+        "outerwear": 35000,
+        "clothing": 10000,
+        "accessories": 5000,
+        "bag": 8000
+      },
+      "sell_dates": {
+        "outerwear": "2026-10-29",
+        "clothing": "2026-10-29",
+        "accessories": "2026-10-29",
+        "bag": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Компас-патч на двух пуговицах, вышивка ровная; на обороте патча — бирка с артикулом", "Внутренняя бирка с кодом Certilogo (с ~2009): код проверяется на certilogo.com"]
+    },
+    "moncler": {
+      "name": "Moncler",
+      "aliases": ["moncler", "盟可睐", "蒙口", "盟口"],
+      "desire": 75,
+      "liquidity": 80,
+      "ambassador": ["outerwear"],
+      "min_price": {
+        "outerwear": 1200,
+        "*": 400
+      },
+      "models": [
+        {
+          "name": "Maya",
+          "category": "outerwear",
+          "desire": 70,
+          "liquidity": 82,
+          "words": ["maya", "玛雅"],
+          "sell_rub": 50000,
+          "sell_date": "2026-10-29",
+          "checks": ["Maya: глянцевый нейлон, двойной воротник-капюшон; сверьте QR-код бирки"]
+        }
+      ],
+      "variants": [
+        {
+          "name": "матовый материал",
+          "desire": 10,
+          "words": ["哑光", "磨砂", "雾面", "matte"]
+        },
+        {
+          "name": "глянец",
+          "desire": -15,
+          "words": ["亮面", "漆面", "shiny", "glossy"]
+        },
+        {
+          "name": "Grenoble/Genius",
+          "desire": 5,
+          "words": ["grenoble", "genius"]
+        }
+      ],
+      "sell_rub": {
+        "outerwear": 30000,
+        "clothing": 15000,
+        "accessories": 8000,
+        "shoes": 15000
+      },
+      "sell_dates": {
+        "outerwear": "2026-10-29",
+        "clothing": "2026-10-29",
+        "accessories": "2026-10-29",
+        "shoes": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Внутренняя бирка подлинности с QR/NFC (с ~2013) — проверка на code.moncler.com", "Логотип-патч пришит ровно, фетр плотный; молнии фирменные (Lampo/Riri и т.п.)"]
+    },
+    "chrome_hearts": {
+      "name": "Chrome Hearts",
+      "aliases": ["chrome hearts", "chromehearts", "克罗心", "crome hearts"],
+      "desire": 75,
+      "liquidity": 80,
+      "ambassador": ["jewelry"],
+      "category_desire": {
+        "jewelry": 15,
+        "clothing": -25
+      },
+      "min_price": {
+        "jewelry": 800,
+        "*": 400
+      },
+      "models": [],
+      "variants": [],
+      "sell_rub": {
+        "jewelry": 45000,
+        "accessories": 20000,
+        "clothing": 15000,
+        "bag": 40000,
+        "outerwear": 60000,
+        "sneakers": 30000
+      },
+      "sell_dates": {
+        "jewelry": "2026-10-29",
+        "accessories": "2026-10-29",
+        "clothing": "2026-10-29",
+        "bag": "2026-10-29",
+        "outerwear": "2026-10-29",
+        "sneakers": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Клейма CH и .925 с годом — чёткие, глубокие; серебро тяжёлое, без жёлтого/зелёного налёта под покрытием", "Чек/пакет CH или магазина-дилера сильно поднимают надёжность — попросите фото"]
+    },
+    "lv": {
+      "name": "Louis Vuitton",
+      "aliases": ["louis vuitton", "路易威登", "lv", "驴牌", "louis vuiton"],
+      "desire": 65,
+      "liquidity": 80,
+      "ambassador": [],
+      "min_price": {
+        "bag": 2500,
+        "*": 500
+      },
+      "models": [
+        {
+          "name": "Carryall",
+          "category": "bag",
+          "words": ["carryall"],
+          "min_price": 6000,
+          "checks": ["Carryall выпускается с 2022 года, только с чипом — винтажа нет; дешевле ~¥6000 почти наверняка реплика"]
+        },
+        {
+          "name": "Neverfull",
+          "category": "bag",
+          "words": ["neverfull"],
+          "min_price": 4000
+        }
+      ],
+      "variants": [],
+      "sell_rub": {
+        "bag": 70000,
+        "accessories": 20000,
+        "sneakers": 25000,
+        "shoes": 25000
+      },
+      "sell_dates": {
+        "bag": "2026-10-29",
+        "accessories": "2026-10-29",
+        "sneakers": "2026-10-29",
+        "shoes": "2026-10-29"
+      },
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Термо-штамп «Louis Vuitton Paris made in …» ровный; дата-код (до 2021) или чип (после) — сверьте с годом модели", "Канва: рисунок симметричен по швам, вачетта (натуральная кожа) темнеет со временем, не «пластиковая»"]
+    },
+    "burberry": {
+      "name": "Burberry",
+      "aliases": ["burberry", "巴宝莉", "博柏利"],
+      "desire": 60,
+      "liquidity": 70,
+      "ambassador": ["outerwear"],
+      "min_price": {
+        "outerwear": 1500,
+        "*": 500
+      },
+      "variants": [
+        {
+          "name": "EKD (рыцарь)",
+          "desire": 10,
+          "words": ["ekd", "战马", "骑士", "knight"]
+        },
+        {
+          "name": "Blue/Black Label (японская лицензия)",
+          "desire": -20,
+          "words": ["blue label", "black label", "蓝标", "黑标"]
+        }
+      ],
+      "sell_rub": {
+        "outerwear": 30000,
+        "clothing": 12000,
+        "bag": 25000,
+        "accessories": 10000
+      },
+      "sell_dates": {
+        "outerwear": "2026-11-03",
+        "clothing": "2026-11-03",
+        "bag": "2026-11-03",
+        "accessories": "2026-11-03"
+      },
+      "models": [
+        {
+          "name": "EKD пуховик",
+          "category": "outerwear",
+          "desire": 75,
+          "liquidity": 75,
+          "all": [
+            ["ekd", "战马", "骑士", "knight"],
+            ["羽绒", "puffer", "down"]
+          ],
+          "sell_rub": 90000,
+          "sell_date": "2026-11-03",
+          "checks": ["EKD-пуховик (с 2023): рыцарь на груди — ровная аппликация или печать без размытых краёв", "Мелкая надпись BURBERRY внизу сбоку; внутренние бирки с составом пуха и QR", "Цена продажи 90 000 ₽ — ориентир, поправьте на вкладке «Каталог»"]
+        }
+      ],
+      "checks": ["Попросите проверку через 验货宝 — самая надёжная проверка до оплаты", "Пуховики и тренчи Burberry — одна из самых подделываемых вещей: сверяйте бирки, фурнитуру, ровность строчки"]
+    },
+    "kapital": {
+      "name": "Kapital",
+      "aliases": ["kapital", "キャピタル", "平田和文"],
+      "desire": 68,
+      "liquidity": 50,
+      "ambassador": ["outerwear", "clothing"],
+      "min_price": {
+        "outerwear": 800,
+        "*": 300
+      },
+      "variants": [
+        {
+          "name": "Kountry / Boro / Century",
+          "desire": 15,
+          "words": ["kountry", "boro", "century", "ボロ", "カントリー", "センチュリー"]
+        }
+      ],
+      "sell_rub": {
+        "clothing": 15000,
+        "outerwear": 30000,
+        "shoes": 12000,
+        "sneakers": 12000,
+        "bag": 12000,
+        "accessories": 7000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04",
+        "shoes": "2026-11-04",
+        "sneakers": "2026-11-04",
+        "bag": "2026-11-04",
+        "accessories": "2026-11-04"
+      },
+      "models": [
+        {
+          "name": "Kountry / Boro / Century (верх)",
+          "category": "outerwear",
+          "desire": 85,
+          "liquidity": 55,
+          "words": ["kountry", "boro", "century", "ボロ", "カントリー", "センチュリー"],
+          "sell_rub": 45000,
+          "sell_date": "2026-11-04",
+          "checks": ["Boro/Kountry — ручные заплатки и индиго: неровность — норма, но бирка KAPITAL KOUNTRY и сезон должны совпадать"]
+        }
+      ],
+      "checks": ["Денимы и бандана-принты Kapital копируют реже, чем люкс; смотрите бирку Kapital/Kountry и страну (Made in Japan)", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"]
+    },
+    "visvim": {
+      "name": "Visvim",
+      "aliases": ["visvim", "ビズビム", "ヴィスヴィム", "中村浩"],
+      "desire": 70,
+      "liquidity": 45,
+      "ambassador": ["shoes"],
+      "min_price": {
+        "shoes": 1200,
+        "*": 500
+      },
+      "variants": [],
+      "sell_rub": {
+        "clothing": 18000,
+        "outerwear": 45000,
+        "shoes": 35000,
+        "sneakers": 35000,
+        "bag": 20000,
+        "accessories": 9000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04",
+        "shoes": "2026-11-04",
+        "sneakers": "2026-11-04",
+        "bag": "2026-11-04",
+        "accessories": "2026-11-04"
+      },
+      "models": [
+        {
+          "name": "FBT",
+          "category": "shoes",
+          "desire": 85,
+          "liquidity": 55,
+          "words": ["fbt"],
+          "sell_rub": 40000,
+          "sell_date": "2026-11-04",
+          "checks": ["FBT: бахрома и стежки ручной работы, подошва Vibram, внутри — бирка visvim и размер US"]
+        }
+      ],
+      "checks": ["Visvim подделывают (FBT, Christo): проверяйте стельку, бирку размера и упаковку", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"]
+    },
+    "undercover": {
+      "name": "Undercover",
+      "aliases": ["undercover", "アンダーカバー", "高桥盾", "高橋盾"],
+      "desire": 80,
+      "liquidity": 60,
+      "ambassador": ["clothing", "outerwear"],
+      "min_price": {
+        "outerwear": 600,
+        "*": 300
+      },
+      "variants": [
+        {
+          "name": "архив (Scab, But Beautiful, Languid…)",
+          "desire": 15,
+          "grail": true,
+          "words": ["scab", "but beautiful", "languid", "melting pot", "arts & crafts", "arts&crafts", "85 jacket"]
+        }
+      ],
+      "sell_rub": {
+        "clothing": 18000,
+        "outerwear": 30000,
+        "sneakers": 15000,
+        "shoes": 15000,
+        "bag": 15000,
+        "accessories": 8000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04",
+        "sneakers": "2026-11-04",
+        "shoes": "2026-11-04",
+        "bag": "2026-11-04",
+        "accessories": "2026-11-04"
+      },
+      "models": [],
+      "checks": ["Архивные сезоны — по бирке и году (на внутренней бирке), сравните с фото сезона", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"]
+    },
+    "number_nine": {
+      "name": "Number (N)ine",
+      "aliases": ["number nine", "numbernine", "number (n)ine", "ナンバーナイン", "宫下贵裕", "宮下貴裕"],
+      "desire": 76,
+      "liquidity": 55,
+      "ambassador": ["clothing", "outerwear"],
+      "min_price": {
+        "outerwear": 600,
+        "*": 300
+      },
+      "variants": [
+        {
+          "name": "архив (2003–2009)",
+          "desire": 15,
+          "grail": true,
+          "words": ["touch me i'm sick", "the high streets", "a closed feeling", "give peace a chance", "kurt cobain"]
+        }
+      ],
+      "sell_rub": {
+        "clothing": 17000,
+        "outerwear": 35000,
+        "shoes": 20000,
+        "accessories": 10000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04",
+        "shoes": "2026-11-04",
+        "accessories": "2026-11-04"
+      },
+      "models": [],
+      "checks": ["Архив Number (N)ine копируют: бирки по сезону, качество принтов и вышивки", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"]
+    },
+    "yohji": {
+      "name": "Yohji Yamamoto",
+      "aliases": ["yohji", "山本耀司", "ヨウジヤマモト"],
+      "desire": 75,
+      "liquidity": 55,
+      "ambassador": ["clothing", "outerwear"],
+      "min_price": {
+        "outerwear": 600,
+        "*": 300
+      },
+      "variants": [
+        {
+          "name": "Pour Homme",
+          "desire": 10,
+          "words": ["pour homme", "pourhomme", "プールオム"]
+        },
+        {
+          "name": "Ground Y / Y's (диффузия)",
+          "desire": -15,
+          "words": ["ground y", "groundy", "y's", "ワイズ"]
+        }
+      ],
+      "sell_rub": {
+        "clothing": 15000,
+        "outerwear": 30000,
+        "shoes": 25000,
+        "bag": 15000,
+        "accessories": 8000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04",
+        "shoes": "2026-11-04",
+        "bag": "2026-11-04",
+        "accessories": "2026-11-04"
+      },
+      "models": [],
+      "checks": ["Линия — по бирке: Yohji Yamamoto Pour Homme (главная мужская) дороже Y's и Ground Y", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"]
+    },
+    "cdg": {
+      "name": "Comme des Garçons",
+      "aliases": ["comme des garcons", "comme des garçons", "cdg", "川久保玲", "コムデギャルソン"],
+      "desire": 65,
+      "liquidity": 65,
+      "ambassador": [],
+      "min_price": {
+        "outerwear": 500,
+        "*": 200
+      },
+      "variants": [
+        {
+          "name": "Homme Plus",
+          "desire": 15,
+          "words": ["homme plus", "オムプリュス"]
+        },
+        {
+          "name": "PLAY (сердце)",
+          "desire": -25,
+          "words": ["play", "心脏", "ハート", "heart logo"]
+        }
+      ],
+      "sell_rub": {
+        "clothing": 9000,
+        "outerwear": 22000,
+        "bag": 8000,
+        "accessories": 7000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04",
+        "bag": "2026-11-04",
+        "accessories": "2026-11-04"
+      },
+      "models": [],
+      "checks": ["PLAY с сердцем — массовая и самая подделываемая линия; дорогое — Homme Plus и CDG Homme", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"]
+    },
+    "junya": {
+      "name": "Junya Watanabe",
+      "aliases": ["junya watanabe", "渡边淳弥", "渡辺淳弥", "ジュンヤワタナベ"],
+      "desire": 68,
+      "liquidity": 50,
+      "ambassador": ["outerwear"],
+      "min_price": {
+        "outerwear": 600,
+        "*": 300
+      },
+      "variants": [],
+      "sell_rub": {
+        "clothing": 12000,
+        "outerwear": 30000,
+        "sneakers": 12000,
+        "shoes": 12000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04",
+        "sneakers": "2026-11-04",
+        "shoes": "2026-11-04"
+      },
+      "models": [],
+      "checks": ["Мужская линия — JUNYA WATANABE MAN (бирка CDG); женская Junya — в другом размере", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"],
+      "includes": ["cdg"]
+    },
+    "issey": {
+      "name": "Issey Miyake",
+      "aliases": ["issey miyake", "homme plisse", "homme plissé", "三宅一生", "イッセイミヤケ"],
+      "desire": 62,
+      "liquidity": 60,
+      "ambassador": [],
+      "min_price": {
+        "*": 300
+      },
+      "variants": [
+        {
+          "name": "Homme Plissé",
+          "desire": 8,
+          "words": ["homme plisse", "homme plissé", "オムプリッセ"]
+        },
+        {
+          "name": "Pleats Please (женская)",
+          "desire": -40,
+          "words": ["pleats please", "プリーツプリーズ"]
+        }
+      ],
+      "sell_rub": {
+        "clothing": 12000,
+        "outerwear": 20000,
+        "bag": 15000,
+        "accessories": 7000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04",
+        "bag": "2026-11-04",
+        "accessories": "2026-11-04"
+      },
+      "models": [],
+      "checks": ["Bao Bao и Pleats Please — в основном женские; мужская — Homme Plissé и Issey Miyake Men", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"]
+    },
+    "sacai": {
+      "name": "Sacai",
+      "aliases": ["sacai", "サカイ", "阿部千登势"],
+      "desire": 60,
+      "liquidity": 50,
+      "ambassador": [],
+      "min_price": {
+        "*": 300
+      },
+      "variants": [],
+      "sell_rub": {
+        "clothing": 12000,
+        "outerwear": 25000,
+        "sneakers": 18000,
+        "shoes": 18000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04",
+        "sneakers": "2026-11-04",
+        "shoes": "2026-11-04"
+      },
+      "models": [],
+      "checks": ["Nike × sacai (кроссовки) подделывают массово — проверка через 验货宝 / оригинальная коробка", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"]
+    },
+    "needles": {
+      "name": "Needles",
+      "aliases": ["needles", "ニードルズ", "蝴蝶裤"],
+      "desire": 58,
+      "liquidity": 55,
+      "ambassador": ["clothing"],
+      "min_price": {
+        "*": 300
+      },
+      "variants": [],
+      "sell_rub": {
+        "clothing": 12000,
+        "outerwear": 20000
+      },
+      "sell_dates": {
+        "clothing": "2026-11-04",
+        "outerwear": "2026-11-04"
+      },
+      "models": [],
+      "checks": ["Track pants с бабочкой подделывают: вышивка бабочки, бирка Needles и Nepenthes", "На Mercari подделок мало, но на Goofish у этого бренда их хватает: бирки, состав, страна производства (Made in Japan)", "Цены продажи — ориентир (каналы, новые цены минус износ), поправьте на вкладке «Каталог»"]
+    }
+  },
+  "other_brands": ["tumi", "途明", "coach", "蔻驰", "michael kors", "gucci", "古驰", "dior", "迪奥", "fendi", "芬迪", "hermes", "爱马仕", "celine", "思琳", "loewe", "罗意威", "givenchy", "纪梵希", "valentino", "华伦天奴", "ysl", "saint laurent", "圣罗兰", "off-white", "adidas", "阿迪达斯", "nike", "耐克", "new balance", "arc'teryx", "始祖鸟", "the north face", "北面", "canada goose", "加拿大鹅", "supreme", "bape", "mcm", "longchamp", "珑骧", "miu miu", "缪缪", "chanel", "香奈儿"],
+  "outside": {
+    "_help": "Вещи брендов не из каталога. «Интересные» показываются в ленте блоком «Вне каталога» с пометкой интересно/под вопросом; «шлак» отсеивается молча. Вещи без бренда показываются, только если дороже порога и есть 验货宝/чек/винтаж.",
+    "enabled": true,
+    "min_price": 500,
+    "unknown_min_price": 800,
+    "interesting": [
+      {
+        "name": "Raf Simons",
+        "words": ["raf simons", "拉夫西蒙"],
+        "desire": 75,
+        "sell_rub": {
+          "clothing": 20000,
+          "outerwear": 40000,
+          "sneakers": 20000
+        }
+      },
+      {
+        "name": "Helmut Lang",
+        "words": ["helmut lang", "赫尔穆特朗"],
+        "desire": 68,
+        "sell_rub": {
+          "clothing": 12000,
+          "outerwear": 30000
+        }
+      },
+      {
+        "name": "Ann Demeulemeester",
+        "words": ["ann demeulemeester", "安迪穆拉米斯特"],
+        "desire": 72
+      },
+      {
+        "name": "Guidi",
+        "words": ["guidi"],
+        "desire": 75,
+        "sell_rub": {
+          "shoes": 50000,
+          "bag": 40000
+        },
+        "checks": ["Guidi: лошадиная/конская кожа «object dyed», маленькое тиснение Guidi на заднике, Made in Italy"]
+      },
+      {
+        "name": "Julius",
+        "words": ["julius_7", "julius"],
+        "desire": 90,
+        "sell_rub": {
+          "outerwear": 30000,
+          "clothing": 10000,
+          "shoes": 25000
+        }
+      },
+      {
+        "name": "m.a+",
+        "words": ["m.a+", "maurizio amadei"],
+        "desire": 75
+      },
+      {
+        "name": "Isaac Sellam",
+        "words": ["isaac sellam"],
+        "desire": 65
+      },
+      {
+        "name": "Label Under Construction",
+        "words": ["label under construction"],
+        "desire": 62
+      },
+      {
+        "name": "Damir Doma",
+        "words": ["damir doma"],
+        "desire": 62
+      },
+      {
+        "name": "Haider Ackermann",
+        "words": ["haider ackermann"],
+        "desire": 62
+      },
+      {
+        "name": "Enfants Riches Déprimés",
+        "words": ["enfants riches", "erd"],
+        "desire": 70
+      },
+      {
+        "name": "Kiko Kostadinov",
+        "words": ["kiko kostadinov"],
+        "desire": 65
+      },
+      {
+        "name": "Craig Green",
+        "words": ["craig green"],
+        "desire": 65
+      },
+      {
+        "name": "1017 ALYX 9SM",
+        "words": ["alyx"],
+        "desire": 60
+      },
+      {
+        "name": "Vetements",
+        "words": ["vetements"],
+        "desire": 55
+      },
+      {
+        "name": "Maison Mihara Yasuhiro",
+        "words": ["mihara yasuhiro", "三原康裕"],
+        "desire": 55,
+        "sell_rub": {
+          "sneakers": 15000
+        }
+      },
+      {
+        "name": "Neighborhood",
+        "words": ["neighborhood"],
+        "desire": 55
+      },
+      {
+        "name": "WTAPS",
+        "words": ["wtaps"],
+        "desire": 55
+      },
+      {
+        "name": "Hysteric Glamour",
+        "words": ["hysteric glamour"],
+        "desire": 60
+      },
+      {
+        "name": "Mastermind Japan",
+        "words": ["mastermind japan", "mastermind"],
+        "desire": 60
+      },
+      {
+        "name": "Jean Paul Gaultier",
+        "words": ["jean paul gaultier", "gaultier", "高缇耶"],
+        "desire": 60
+      },
+      {
+        "name": "Vivienne Westwood",
+        "words": ["vivienne westwood", "西太后"],
+        "desire": 50,
+        "need_check": true
+      },
+      {
+        "name": "Jil Sander",
+        "words": ["jil sander", "吉尔桑达"],
+        "desire": 62
+      },
+      {
+        "name": "Lemaire",
+        "words": ["lemaire"],
+        "desire": 62
+      },
+      {
+        "name": "Our Legacy",
+        "words": ["our legacy"],
+        "desire": 60
+      },
+      {
+        "name": "Acne Studios",
+        "words": ["acne studios", "acne"],
+        "desire": 52
+      },
+      {
+        "name": "Dries Van Noten",
+        "words": ["dries van noten", "德赖斯"],
+        "desire": 62
+      },
+      {
+        "name": "Hermès",
+        "words": ["hermes", "hermès", "爱马仕"],
+        "desire": 70,
+        "sell_rub": {
+          "bag": 150000,
+          "accessories": 30000,
+          "shoes": 40000
+        },
+        "checks": ["Hermès: штамп года и мастера, ровная седельная строчка; очень много реплик — только с 验货宝"]
+      },
+      {
+        "name": "Gucci",
+        "words": ["gucci", "古驰"],
+        "desire": 60,
+        "sell_rub": {
+          "bag": 60000,
+          "sneakers": 25000,
+          "shoes": 22000,
+          "accessories": 15000,
+          "clothing": 18000,
+          "outerwear": 40000
+        },
+        "checks": ["Внутренняя кожаная бирка с двумя рядами цифр (серийник), «made in Italy»; GG-канва симметрична"]
+      },
+      {
+        "name": "Celine",
+        "words": ["celine", "思琳", "赛琳"],
+        "desire": 60,
+        "sell_rub": {
+          "bag": 50000,
+          "clothing": 15000
+        }
+      },
+      {
+        "name": "Loewe",
+        "words": ["loewe", "罗意威"],
+        "desire": 65,
+        "sell_rub": {
+          "bag": 55000,
+          "clothing": 15000
+        }
+      },
+      {
+        "name": "Saint Laurent",
+        "words": ["saint laurent", "ysl", "圣罗兰"],
+        "desire": 60,
+        "sell_rub": {
+          "bag": 40000,
+          "shoes": 25000,
+          "outerwear": 45000,
+          "sneakers": 20000,
+          "jewelry": 15000,
+          "clothing": 15000
+        }
+      },
+      {
+        "name": "Dior",
+        "words": ["dior homme", "dior", "迪奥"],
+        "desire": 60,
+        "sell_rub": {
+          "bag": 50000,
+          "sneakers": 30000,
+          "clothing": 20000,
+          "shoes": 25000,
+          "outerwear": 45000,
+          "jewelry": 15000
+        }
+      },
+      {
+        "name": "Fendi",
+        "words": ["fendi", "芬迪"],
+        "desire": 55
+      },
+      {
+        "name": "Givenchy",
+        "words": ["givenchy", "纪梵希"],
+        "desire": 55
+      },
+      {
+        "name": "Valentino",
+        "words": ["valentino", "华伦天奴"],
+        "desire": 50
+      },
+      {
+        "name": "Versace",
+        "words": ["versace", "范思哲"],
+        "desire": 50,
+        "need": ["中古", "vintage", "老款", "复古", "古着", "美国制造", "made in usa", "80年代", "90年代"],
+        "need_note": "Versace интересен только винтаж"
+      },
+      {
+        "name": "Goyard",
+        "words": ["goyard", "戈雅"],
+        "desire": 60
+      },
+      {
+        "name": "Berluti",
+        "words": ["berluti", "伯尔鲁帝"],
+        "desire": 60
+      },
+      {
+        "name": "Loro Piana",
+        "words": ["loro piana", "诺悠翩雅"],
+        "desire": 65,
+        "sell_rub": {
+          "shoes": 40000,
+          "outerwear": 60000,
+          "clothing": 25000
+        }
+      },
+      {
+        "name": "Brunello Cucinelli",
+        "words": ["brunello cucinelli", "布鲁内罗"],
+        "desire": 60
+      },
+      {
+        "name": "Thom Browne",
+        "words": ["thom browne", "汤姆布朗"],
+        "desire": 55
+      },
+      {
+        "name": "John Lobb",
+        "words": ["john lobb"],
+        "desire": 60
+      },
+      {
+        "name": "Paraboot",
+        "words": ["paraboot"],
+        "desire": 50
+      },
+      {
+        "name": "Common Projects",
+        "words": ["common projects"],
+        "desire": 50
+      },
+      {
+        "name": "Coach (винтаж)",
+        "words": ["coach", "蔻驰"],
+        "desire": 55,
+        "need": ["中古", "vintage", "老款", "复古", "古着", "美国制造", "made in usa", "80年代", "90年代"],
+        "need_note": "Coach интересен только винтаж",
+        "sell_rub": {
+          "bag": 15000
+        },
+        "checks": ["Винтаж: кожаная «креп»-табличка с номером (буквы + цифры) и Made in USA/Italy; толстая кожа, латунь"]
+      },
+      {
+        "name": "Bally",
+        "words": ["bally", "巴利"],
+        "desire": 55,
+        "sell_rub": {
+          "bag": 25000,
+          "shoes": 15000
+        },
+        "checks": ["Бирка Bally Switzerland/Italy, полоса B-stripe; кожа плотная"]
+      },
+      {
+        "name": "Tumi",
+        "words": ["tumi", "途明"],
+        "desire": 50,
+        "sell_rub": {
+          "bag": 25000
+        },
+        "checks": ["Табличка Tumi с уникальным номером (Tumi Tracer) — номер регистрируется на tumi.com; молнии YKK"]
+      },
+      {
+        "name": "C.P. Company",
+        "words": ["c.p. company", "cp company", "c.p.company"],
+        "desire": 60,
+        "sell_rub": {
+          "outerwear": 20000,
+          "clothing": 8000,
+          "bag": 8000
+        }
+      },
+      {
+        "name": "Arc'teryx Veilance",
+        "words": ["veilance"],
+        "desire": 70,
+        "sell_rub": {
+          "outerwear": 40000
+        }
+      },
+      {
+        "name": "Arc'teryx",
+        "words": ["arc'teryx", "arcteryx", "始祖鸟"],
+        "desire": 50,
+        "sell_rub": {
+          "outerwear": 25000
+        }
+      },
+      {
+        "name": "Barbour",
+        "words": ["barbour", "巴伯尔"],
+        "desire": 55
+      },
+      {
+        "name": "Belstaff",
+        "words": ["belstaff"],
+        "desire": 50
+      },
+      {
+        "name": "RRL",
+        "words": ["rrl", "double rl"],
+        "desire": 60
+      },
+      {
+        "name": "Supreme",
+        "words": ["supreme"],
+        "desire": 48
+      },
+      {
+        "name": "Bape",
+        "words": ["bape", "a bathing ape"],
+        "desire": 45
+      },
+      {
+        "name": "Off-White",
+        "words": ["off-white", "off white"],
+        "desire": 45
+      },
+      {
+        "name": "Y-3",
+        "words": ["y-3"],
+        "desire": 50
+      },
+      {
+        "name": "Ralph Lauren (винтаж)",
+        "words": ["ralph lauren", "拉夫劳伦", "polo ralph"],
+        "desire": 45,
+        "need": ["中古", "vintage", "老款", "复古", "古着", "美国制造", "made in usa", "80年代", "90年代"],
+        "need_note": "Ralph Lauren интересен только винтаж",
+        "sell_rub": {
+          "clothing": 6000,
+          "outerwear": 12000
+        }
+      },
+      {
+        "name": "Dolce & Gabbana (архив)",
+        "words": ["dolce&gabbana", "dolce & gabbana", "dolce and gabbana", "dolceand", "d&g", "杜嘉班纳"],
+        "desire": 55,
+        "need": ["vintage", "archive", "中古", "古着", "老款", "00s", "90s", "80s", "2000s", "1990s", "y2k", "复古", "aw", "ss", "fw"],
+        "need_note": "D&G интересен только архив",
+        "sell_rub": {
+          "outerwear": 25000,
+          "clothing": 8000
+        }
+      },
+      {
+        "name": "Marithé + François Girbaud",
+        "words": ["girbaud", "marithe", "marithé"],
+        "desire": 55,
+        "sell_rub": {
+          "outerwear": 15000,
+          "clothing": 7000
+        }
+      },
+      {
+        "name": "Diesel",
+        "words": ["diesel"],
+        "desire": 60,
+        "sell_rub": {
+          "outerwear": 15000,
+          "clothing": 9000
+        }
+      }
+    ],
+    "junk": ["skechers", "斯凯奇", "zara", "uniqlo", "优衣库", "h&m", "anta", "安踏", "li-ning", "李宁", "特步", "361度", "鸿星尔克", "michael kors", "迈克高仕", "longchamp", "珑骧", "mcm", "kate spade", "凯特丝蓓", "tory burch", "汤丽柏琦", "guess", "charles & keith", "小ck", "calvin klein", "tommy hilfiger", "fila", "斐乐", "puma", "彪马", "converse", "匡威", "vans", "万斯", "nike", "耐克", "adidas", "阿迪达斯", "new balance", "新百伦", "under armour", "安德玛", "champion", "gap", "muji", "无印良品", "太平鸟", "森马", "海澜之家", "jack jones", "杰克琼斯", "playboy", "花花公子", "啄木鸟", "金利来", "七匹狼", "crocs", "卡骆驰", "ugg", "timberland", "添柏岚", "samsonite", "新秀丽", "lacoste", "the north face", "北面", "canada goose", "加拿大鹅", "chanel", "香奈儿", "miu miu", "缪缪", "pinko", "furla", "芙拉", "coach outlet", "mk", "惠普"]
+  },
+  "default_sell": {
+    "bag": 20000,
+    "shoes": 15000,
+    "sneakers": 12000,
+    "outerwear": 20000,
+    "clothing": 7000,
+    "jewelry": 10000,
+    "accessories": 7000
+  }
+}

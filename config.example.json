@@ -1,0 +1,9 @@
+{
+ "_help": "Скопируйте в config.json и оставьте только то, что хотите поменять. Все ключи и значения по умолчанию — в config.py",
+ "watch_gap": 14,
+ "page_gap": 10,
+ "jitter": 0.35,
+ "backoff_base_min": 30,
+ "block_max_per_day": 3,
+ "log_max_mb": 5
+}
